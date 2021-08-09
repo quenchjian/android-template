@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewTaskBinding
@@ -18,7 +19,7 @@ import me.quenchjian.presentation.taskdetail.usecase.DeleteTaskUseCase
 import me.quenchjian.presentation.taskdetail.usecase.LoadTaskUseCase
 import javax.inject.Inject
 
-@EntryPoint
+@AndroidEntryPoint
 class TaskFragment : KeyedFragment(R.layout.view_task), TaskScreen.Controller {
 
   @Inject lateinit var navProvider: Navigator.Provider

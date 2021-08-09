@@ -2,6 +2,7 @@ package me.quenchjian.presentation.tasks
 
 import android.os.Bundle
 import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewTasksBinding
@@ -17,7 +18,7 @@ import me.quenchjian.presentation.tasks.usecase.ClearCompletedTasksUseCase
 import me.quenchjian.presentation.tasks.usecase.LoadTasksUseCase
 import javax.inject.Inject
 
-@EntryPoint
+@AndroidEntryPoint
 class TasksFragment : DrawerFragment<TasksScreen.View>(R.layout.view_tasks),
   TasksScreen.Controller {
 

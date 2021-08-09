@@ -2,7 +2,7 @@ package me.quenchjian.presentation.drawer
 
 import android.os.Bundle
 import androidx.annotation.LayoutRes
-import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import me.quenchjian.navigation.FragmentKey
 import me.quenchjian.navigation.KeyedFragment
 import me.quenchjian.navigation.Navigator
@@ -11,7 +11,7 @@ import me.quenchjian.presentation.tasks.TasksFragment
 import java.util.EnumMap
 import javax.inject.Inject
 
-@EntryPoint
+@AndroidEntryPoint
 abstract class DrawerFragment<V : DrawerScreen>(@LayoutRes id: Int) : KeyedFragment(id) {
 
   @Inject lateinit var navProvider: Navigator.Provider

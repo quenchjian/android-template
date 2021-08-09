@@ -6,11 +6,12 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 import me.quenchjian.navigation.Navigator
 import me.quenchjian.presentation.tasks.TasksFragment
 import javax.inject.Inject
 
-@EntryPoint
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
   @Inject

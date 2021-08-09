@@ -1,5 +1,6 @@
 package me.quenchjian.presentation.statistics
 
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewStaticticsBinding
@@ -10,6 +11,7 @@ import me.quenchjian.presentation.drawer.DrawerScreen
 import me.quenchjian.presentation.statistics.usecase.CalculateTasksUseCase
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class StatisticsFragment : DrawerFragment<StatisticsScreen.View>(R.layout.view_statictics),
   StatisticsScreen.Controller {
 
