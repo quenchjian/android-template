@@ -2,9 +2,12 @@ package me.quenchjian.webservice
 
 import kotlinx.coroutines.delay
 import me.quenchjian.model.Task
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.random.Random
 
-class WebApi : RestApi {
+@Singleton
+class WebApi @Inject constructor() : RestApi {
 
   private val tasks = mutableMapOf<String, Task>()
 

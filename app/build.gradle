@@ -3,15 +3,15 @@ plugins {
   id "kotlin-android"
   id "kotlin-kapt"
   id "kotlin-parcelize"
+  id "dagger.hilt.android.plugin"
 }
 
 android {
-  compileSdkVersion 30
-  buildToolsVersion "30.0.3"
+  compileSdkVersion 31
   defaultConfig {
     applicationId "me.quenchjian"
     minSdkVersion 23
-    targetSdkVersion 30
+    targetSdkVersion 31
     multiDexEnabled true
     versionCode 1
     versionName "1.0"
@@ -24,7 +24,7 @@ android {
     }
   }
   buildFeatures {
-    viewBinding = true
+    viewBinding true
   }
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_1_8

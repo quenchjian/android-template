@@ -3,6 +3,7 @@ package me.quenchjian.presentation.drawer
 import android.os.Bundle
 import androidx.annotation.LayoutRes
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import me.quenchjian.navigation.FragmentKey
 import me.quenchjian.navigation.KeyedFragment
 import me.quenchjian.navigation.Navigator
@@ -11,10 +12,9 @@ import me.quenchjian.presentation.tasks.TasksFragment
 import java.util.EnumMap
 import javax.inject.Inject
 
-@AndroidEntryPoint
 abstract class DrawerFragment<V : DrawerScreen>(@LayoutRes id: Int) : KeyedFragment(id) {
 
-  @Inject lateinit var navProvider: Navigator.Provider
+  protected val navProvider: Navigator.Provider by lazy { Navigator.Provider.get(requireContext()) }
 
   abstract val view: V
   private val targets = EnumMap<DrawerScreen.Menu, FragmentKey>(DrawerScreen.Menu::class.java)
