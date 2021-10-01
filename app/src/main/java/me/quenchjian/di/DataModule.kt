@@ -17,7 +17,7 @@ abstract class DataModule {
   companion object {
     @Provides
     @Named("DatabaseName")
-    fun provideDatabaseName() = if (BuildConfig.DEBUG) "task_debug.db" else "task.db"
+    fun provideDatabaseName() = if (BuildConfig.DEBUG) "todo_debug.db" else "todo.db"
   }
 
   @Binds

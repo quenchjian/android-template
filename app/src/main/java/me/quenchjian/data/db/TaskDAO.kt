@@ -1,5 +1,6 @@
 package me.quenchjian.data.db
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
@@ -27,7 +28,7 @@ class TaskDAO @Inject constructor(private val dbHelper: TodoDBHelper) : TaskRepo
   override suspend fun load(id: String): Task? {
     val sql = "SELECT * FROM $TABLE_NAME WHERE $COL_ID = ?"
     return dbHelper.readableDatabase.rawQuery(sql, arrayOf(id)).use { cursor ->
-      if (cursor.moveToNext()) map(cursor) else null
+      if (cursor.moveToNext()) cursor.toTask() else null
     }
   }
 
@@ -36,7 +37,7 @@ class TaskDAO @Inject constructor(private val dbHelper: TodoDBHelper) : TaskRepo
     return dbHelper.readableDatabase.rawQuery(sql, null).use { cursor ->
       val tasks = mutableListOf<Task>()
       while (cursor.moveToNext()) {
-        tasks.add(map(cursor))
+        tasks.add(cursor.toTask())
       }
       tasks.toList()
     }
@@ -128,12 +129,13 @@ class TaskDAO @Inject constructor(private val dbHelper: TodoDBHelper) : TaskRepo
     }
   }
 
-  private fun map(cursor: Cursor): Task {
+  @SuppressLint("Range")
+  private fun Cursor.toTask(): Task {
     return Task(
-      cursor.getString(cursor.getColumnIndex(COL_ID)),
-      cursor.getString(cursor.getColumnIndex(COL_TITLE)),
-      cursor.getString(cursor.getColumnIndex(COL_DESC)),
-      cursor.getInt(cursor.getColumnIndex(COL_COMPLETE)) == 1
+      getString(getColumnIndex(COL_ID)),
+      getString(getColumnIndex(COL_TITLE)),
+      getString(getColumnIndex(COL_DESC)),
+      getInt(getColumnIndex(COL_COMPLETE)) == 1
     )
   }
 
