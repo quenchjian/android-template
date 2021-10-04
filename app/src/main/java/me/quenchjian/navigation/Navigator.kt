@@ -7,14 +7,13 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import java.util.Deque
-import java.util.LinkedList
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
 class Navigator(
   private val host: FragmentActivity,
-  private val containerId: Int
+  private val containerId: Int,
 ) {
 
   private val manager = host.supportFragmentManager
@@ -56,11 +55,6 @@ class Navigator(
   private fun navigate(direction: Direction, from: FragmentKey?, to: FragmentKey) {
     val transaction = manager.beginTransaction().disallowAddToBackStack()
     if (from != null) {
-      when (direction) {
-        Direction.REPLACE -> from.onReplace(transaction, false)
-        Direction.FORWARD -> from.onForward(transaction, false)
-        Direction.BACKWARD -> from.onBackward(transaction, false)
-      }
       val current = manager.findFragmentByTag(from.tag)
       if (current != null) {
         if (!stack.contains(from)) {
@@ -68,12 +62,11 @@ class Navigator(
         } else if (!current.isDetached) {
           transaction.detach(current)
         }
+        when (direction) {
+          Direction.REPLACE -> current.enterTransition = null
+          else -> current.enterTransition = to.transition.exit
+        }
       }
-    }
-    when (direction) {
-      Direction.REPLACE -> to.onReplace(transaction, true)
-      Direction.FORWARD -> to.onForward(transaction, true)
-      Direction.BACKWARD -> to.onBackward(transaction, true)
     }
     var target = manager.findFragmentByTag(to.tag)
     if (target == null) {
@@ -86,6 +79,10 @@ class Navigator(
         transaction.attach(target)
       }
     }
+    when (direction) {
+      Direction.REPLACE -> target.enterTransition = null
+      else -> target.enterTransition = to.transition.enter
+    }
     transaction.commitAllowingStateLoss()
   }
 
@@ -93,20 +90,26 @@ class Navigator(
     REPLACE, FORWARD, BACKWARD
   }
 
+  companion object {
+    fun init(host: FragmentActivity, containerId: Int): Navigator {
+      return Provider.get(host).init(host, containerId)
+    }
+  }
+
   @Singleton
   class Provider @Inject constructor() {
     private val navigators = mutableMapOf<String, Navigator>()
 
-    fun get(host: FragmentActivity, containerId: Int): Navigator {
-      return navigators.getOrPut(host.javaClass.name) { Navigator(host, containerId) }
+    fun init(host: FragmentActivity, containerId: Int): Navigator {
+      return navigators.getOrPut(host::class.java.name) { Navigator(host, containerId) }
     }
 
     fun get(host: FragmentActivity): Navigator {
-      return checkNotNull(navigators[host.javaClass.name]) { "Navigator didn't init" }
+      return checkNotNull(navigators[host::class.java.name]) { "Navigator didn't init" }
     }
 
     fun get(fragment: Fragment): Navigator {
-      return checkNotNull(navigators[fragment.requireActivity().javaClass.name]) { "Navigator didn't init" }
+      return checkNotNull(navigators[fragment.requireActivity()::class.java.name]) { "Navigator didn't init" }
     }
 
     companion object {

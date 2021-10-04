@@ -5,23 +5,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
-import dagger.hilt.EntryPoint
-import dagger.hilt.android.AndroidEntryPoint
 import me.quenchjian.navigation.Navigator
 import me.quenchjian.presentation.tasks.TasksFragment
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-  @Inject
-  lateinit var navigatorProvider: Navigator.Provider
   private lateinit var navigator: Navigator
   private var containerId: Int = 0
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    navigator = navigatorProvider.get(this, createContainer(savedInstanceState))
+    navigator = Navigator.init(this, createContainer(savedInstanceState))
     navigator.setBackStack(listOf(TasksFragment.Key()))
   }
 
