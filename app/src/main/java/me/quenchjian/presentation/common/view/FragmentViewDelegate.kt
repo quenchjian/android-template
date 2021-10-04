@@ -1,4 +1,4 @@
-package me.quenchjian.presentation.common
+package me.quenchjian.presentation.common.view
 
 import android.os.Bundle
 import android.view.View
@@ -7,6 +7,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+import me.quenchjian.presentation.common.Screen
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 

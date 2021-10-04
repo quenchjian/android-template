@@ -1,4 +1,4 @@
-package me.quenchjian.usecase
+package me.quenchjian.presentation.common.model
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -8,22 +8,18 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.coroutines.CoroutineContext
 
-abstract class Observable(private val scheduler: Schedulers) : CoroutineScope {
+abstract class Observable<T>(private val scheduler: Schedulers) : CoroutineScope {
 
   override val coroutineContext: CoroutineContext = scheduler.ui
 
-  protected var startRunner: () -> Unit = {}
-  protected var completeRunner: () -> Unit = {}
-  protected var errorRunner: (Throwable) -> Unit = {}
-
   private val lock = ReentrantLock()
-  private val observers = LinkedHashSet<StateObserver>()
+  private val observers = LinkedHashSet<State.Observer<T>>()
 
-  fun subscribe(observer: StateObserver) {
+  fun subscribe(observer: State.Observer<T>) {
     lock.withLock { observers.add(observer) }
   }
 
-  fun unsubscribe(observer: StateObserver) {
+  fun unsubscribe(observer: State.Observer<T>) {
     lock.withLock { observers.remove(observer) }
   }
 
@@ -31,7 +27,7 @@ abstract class Observable(private val scheduler: Schedulers) : CoroutineScope {
     lock.withLock { observers.clear() }
   }
 
-  protected fun <T> tryInvoke(block: suspend () -> T) {
+  protected fun tryInvoke(block: suspend () -> T) {
     launch {
       try {
         notifyStateChange(State.Loading)
@@ -49,7 +45,7 @@ abstract class Observable(private val scheduler: Schedulers) : CoroutineScope {
     getObservers().forEach { it.onStateChanged(state) }
   }
 
-  private fun getObservers(): Set<StateObserver> {
+  private fun getObservers(): Set<State.Observer<T>> {
     return lock.withLock { observers.toHashSet() }
   }
 }
