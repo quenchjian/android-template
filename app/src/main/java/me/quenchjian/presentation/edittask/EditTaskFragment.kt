@@ -10,8 +10,9 @@ import me.quenchjian.databinding.ViewEditTaskBinding
 import me.quenchjian.model.Task
 import me.quenchjian.navigation.FragmentKey
 import me.quenchjian.navigation.KeyedFragment
-import me.quenchjian.navigation.Navigator
-import me.quenchjian.presentation.common.createView
+import me.quenchjian.navigation.navigator
+import me.quenchjian.presentation.common.model.State
+import me.quenchjian.presentation.common.view.createView
 import me.quenchjian.presentation.edittask.usecase.AddTaskUseCase
 import me.quenchjian.presentation.edittask.usecase.DescriptionEmptyError
 import me.quenchjian.presentation.edittask.usecase.EditTaskUseCase
@@ -22,7 +23,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class EditTaskFragment : KeyedFragment(R.layout.view_edit_task), EditTaskScreen.Controller {
 
-  @Inject lateinit var navProvider: Navigator.Provider
   @Inject lateinit var loadTask: LoadTaskUseCase
   @Inject lateinit var addTask: AddTaskUseCase
   @Inject lateinit var editTask: EditTaskUseCase
@@ -32,6 +32,11 @@ class EditTaskFragment : KeyedFragment(R.layout.view_edit_task), EditTaskScreen.
   private var taskId: String? = null
   private lateinit var task: Task
 
+  private val addEditObserver = State.Observer<Task>(
+    onSuccess = { navigator.goBack() },
+    onError = this::handleError
+  )
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     taskId = getKey<Key>().taskId
@@ -39,6 +44,12 @@ class EditTaskFragment : KeyedFragment(R.layout.view_edit_task), EditTaskScreen.
 
   override fun onStart() {
     super.onStart()
+    loadTask.subscribe(State.Observer(
+      onSuccess = { view.showTask(it.also { task = it }) },
+      onError = this::handleError
+    ))
+    addTask.subscribe(addEditObserver)
+    editTask.subscribe(addEditObserver)
     view.onSaveClick { saveTask(it, taskId == null) }
     if (taskId != null) {
       loadTask(taskId!!)
@@ -53,24 +64,14 @@ class EditTaskFragment : KeyedFragment(R.layout.view_edit_task), EditTaskScreen.
   }
 
   override fun loadTask(id: String) {
-    loadTask
-      .onSuccess { task ->
-        this.task = task
-        view.showTask(task)
-      }
-      .onError { handleError(it) }
-      .invoke(id, true)
+    loadTask(id, true)
   }
 
   override fun saveTask(input: EditTaskScreen.Input, add: Boolean) {
     if (add) {
-      addTask.onSuccess { navProvider.get(this).goBack() }
-        .onError { handleError(it) }
-        .invoke(input.title, input.description)
+      addTask(input.title, input.description)
     } else {
-      editTask.onSuccess { navProvider.get(this).goBack() }
-        .onError { handleError(it) }
-        .invoke(task.copy(title = input.title, description = input.description))
+      editTask(task.copy(title = input.title, description = input.description))
     }
   }
 

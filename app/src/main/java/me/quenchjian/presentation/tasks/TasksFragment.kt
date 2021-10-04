@@ -1,14 +1,15 @@
 package me.quenchjian.presentation.tasks
 
 import android.os.Bundle
-import dagger.hilt.EntryPoint
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewTasksBinding
 import me.quenchjian.model.Task
 import me.quenchjian.navigation.FragmentKey
-import me.quenchjian.presentation.common.createView
+import me.quenchjian.navigation.navigator
+import me.quenchjian.presentation.common.model.State
+import me.quenchjian.presentation.common.view.createView
 import me.quenchjian.presentation.drawer.DrawerFragment
 import me.quenchjian.presentation.drawer.DrawerScreen
 import me.quenchjian.presentation.edittask.EditTaskFragment
@@ -27,29 +28,51 @@ class TasksFragment : DrawerFragment<TasksScreen.View>(R.layout.view_tasks),
   @Inject lateinit var clearTasks: ClearCompletedTasksUseCase
 
   override val view by createView { v -> TasksView(ViewTasksBinding.bind(v)) }
+  override val drawer by lazy { view }
   override fun getCurrentMenu() = DrawerScreen.Menu.TASKS
 
   private var filter = TasksScreen.Filter.ALL
   private var loading: Boolean = false
+  private lateinit var taskToChange: Task
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    filter = savedInstanceState.getFilter()
+    savedInstanceState?.let { this.filter = it.filter }
   }
 
   override fun onStart() {
     super.onStart()
-    view.onMenuClick { menu ->
+    loadTasks.subscribe(State.Observer(
+      onStart = { toggleLoading(true) },
+      onComplete = { toggleLoading(false) },
+      onSuccess = { drawer.showTasks(it, filter) },
+      onError = this::handleError
+    ))
+    changeTaskState.subscribe(State.Observer(
+      onStart = { toggleLoading(true) },
+      onComplete = { toggleLoading(false) },
+      onError = {
+        handleError(it)
+        drawer.showChangeTaskStateFail(taskToChange)
+      }
+    ))
+    clearTasks.subscribe(State.Observer(
+      onStart = { toggleLoading(true) },
+      onComplete = { toggleLoading(false) },
+      onSuccess = { drawer.showTasks(it, TasksScreen.Filter.ALL) },
+      onError = this::handleError
+    ))
+    drawer.onMenuClick { menu ->
       when (menu) {
-        TasksScreen.Menu.FILTER -> view.showFilterMenu { filter -> loadTasks(false, filter) }
+        TasksScreen.Menu.FILTER -> drawer.showFilterMenu { filter -> loadTasks(false, filter) }
         TasksScreen.Menu.CLEAR -> clearCompletedTask()
         TasksScreen.Menu.REFRESH -> loadTasks(true, filter)
       }
     }
-    view.onSwipeRefresh { loadTasks(true, filter) }
-    view.onTaskClick { task -> navProvider.get(this).goTo(TaskFragment.Key(task.id)) }
-    view.onTaskCompleteClick { checked, task -> toggleTaskState(task, checked) }
-    view.onAddClick { navProvider.get(this).goTo(EditTaskFragment.Key()) }
+    drawer.onSwipeRefresh { loadTasks(true, filter) }
+    drawer.onTaskClick { task -> navigator.goTo(TaskFragment.Key(task.id)) }
+    drawer.onTaskCompleteClick { checked, task -> toggleTaskState(task, checked) }
+    drawer.onAddClick { navigator.goTo(EditTaskFragment.Key()) }
     loadTasks(true, filter)
   }
 
@@ -62,43 +85,35 @@ class TasksFragment : DrawerFragment<TasksScreen.View>(R.layout.view_tasks),
 
   override fun onSaveInstanceState(outState: Bundle) {
     super.onSaveInstanceState(outState)
-    outState.saveFilter(filter)
+    outState.filter = filter
   }
 
   override fun loadTasks(reload: Boolean, filter: TasksScreen.Filter) {
     if (loading) return
     this.filter = filter
-    loadTasks.onStart { view.toggleLoading(true.also { loading = it }) }
-      .onComplete { view.toggleLoading(false.also { loading = it }) }
-      .onSuccess { view.showTasks(it, filter) }
-      .onError { handleError(it) }
-      .invoke(reload, filter)
+    loadTasks.invoke(reload, filter)
   }
 
   override fun toggleTaskState(task: Task, completed: Boolean) {
-    changeTaskState.onStart { view.toggleLoading(true.also { loading = it }) }
-      .onComplete { view.toggleLoading(false.also { loading = it }) }
-      .onError {
-        handleError(it)
-        view.showChangeTaskStateFail(task)
-      }
-      .invoke(task, completed)
+    if (loading) return
+    taskToChange = task
+    changeTaskState.invoke(task, completed)
   }
 
   override fun clearCompletedTask() {
-    clearTasks.onStart { view.toggleLoading(true.also { loading = it }) }
-      .onComplete { view.toggleLoading(false.also { loading = it }) }
-      .onSuccess { view.showTasks(it, TasksScreen.Filter.ALL) }
-      .onError { handleError(it) }
-      .invoke()
+    if (loading) return
+    clearTasks()
+  }
+
+  private fun toggleLoading(loading: Boolean) {
+    this.loading = loading
+    drawer.toggleLoading(loading)
   }
 
   companion object {
-    private fun Bundle?.getFilter() =
-      TasksScreen.Filter.values()[this?.getInt("key-tasks-filter") ?: 0]
-
-    private fun Bundle.saveFilter(filter: TasksScreen.Filter) =
-      putInt("key-tasks-filter", filter.ordinal)
+    private var Bundle.filter: TasksScreen.Filter
+      get() = TasksScreen.Filter.valueOf(getString("key-tasks-filter", TasksScreen.Filter.ALL.name))
+      set(value) = putString("key-tasks-filter", value.name)
   }
 
   @Parcelize
