@@ -110,9 +110,9 @@ class TasksView(
       val inflater = LayoutInflater.from(parent.context)
       val holder = Holder(inflater.inflate(R.layout.item_task, parent, false))
       holder.binding.apply {
-        val task = getItem(holder.adapterPosition)
-        root.setOnClickListener { itemClick(task) }
+        root.setOnClickListener { itemClick(getItem(holder.adapterPosition)) }
         checkboxTaskState.setOnClickListener {
+          val task = getItem(holder.adapterPosition)
           val checked = checkboxTaskState.isChecked
           if (checked != task.isCompleted) {
             itemCheck(checked, task)
