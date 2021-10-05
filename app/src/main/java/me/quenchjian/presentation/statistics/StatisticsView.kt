@@ -13,6 +13,7 @@ class StatisticsView(
 
   init {
     binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+    binding.toolbar.setNavigationContentDescription(R.string.toolbar_navigation_content_description)
     binding.toolbar.title = string(R.string.statistics_title)
   }
 

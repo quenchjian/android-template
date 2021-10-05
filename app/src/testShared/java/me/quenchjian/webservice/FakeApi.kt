@@ -1,8 +1,11 @@
 package me.quenchjian.webservice
 
 import me.quenchjian.model.Task
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class FakeApi : RestApi {
+@Singleton
+class FakeApi @Inject constructor() : RestApi {
 
   private val tasks = mutableMapOf<String, Task>()
 

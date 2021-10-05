@@ -21,6 +21,7 @@ class TasksView(
 
   init {
     binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+    binding.toolbar.setNavigationContentDescription(R.string.toolbar_navigation_content_description)
     binding.toolbar.title = string(R.string.label_all)
     binding.toolbar.inflateMenu(R.menu.tasks_action)
     binding.recyclerTasks.adapter = Adapter()
@@ -33,7 +34,8 @@ class TasksView(
 
   override fun showFilterMenu(click: (filter: TasksScreen.Filter) -> Unit) {
     val view = binding.toolbar.findViewById<View>(R.id.action_filter) ?: return
-    val popup = PopupMenu(context, view).apply { menuInflater.inflate(R.menu.tasks_filter, menu) }
+    val popup = PopupMenu(context, view)
+    popup.inflate(R.menu.tasks_filter)
     popup.setOnMenuItemClickListener {
       when (it.itemId) {
         R.id.filter_active -> click(TasksScreen.Filter.ACTIVE)

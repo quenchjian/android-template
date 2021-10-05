@@ -1,8 +1,11 @@
 package me.quenchjian.data
 
 import me.quenchjian.model.Task
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class FakeTaskRepository: TaskRepository {
+@Singleton
+class FakeTaskRepository @Inject constructor(): TaskRepository {
 
   private val tasks = mutableMapOf<String, Task>()
 

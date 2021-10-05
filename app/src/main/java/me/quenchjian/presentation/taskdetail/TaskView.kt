@@ -12,6 +12,7 @@ class TaskView(private val binding: ViewTaskBinding) : TaskScreen.View {
 
   init {
     binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+    binding.toolbar.setNavigationContentDescription(R.string.toolbar_navigation_content_description)
     binding.toolbar.inflateMenu(R.menu.task_action)
   }
 
