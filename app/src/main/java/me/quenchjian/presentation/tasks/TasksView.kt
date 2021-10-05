@@ -14,18 +14,21 @@ import me.quenchjian.model.Task
 import me.quenchjian.presentation.drawer.DrawerView
 
 class TasksView(
-  private val binding: ViewTasksBinding
+  private val binding: ViewTasksBinding,
 ) : DrawerView(binding.navigation), TasksScreen.View {
 
   override val root: View = binding.root
 
   init {
+    binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+    binding.toolbar.title = string(R.string.label_all)
     binding.toolbar.inflateMenu(R.menu.tasks_action)
     binding.recyclerTasks.adapter = Adapter()
   }
 
   override fun toggleLoading(loading: Boolean) {
     binding.swiperefreshTasks.isRefreshing = loading
+    (binding.recyclerTasks.adapter as Adapter).loading = loading
   }
 
   override fun showFilterMenu(click: (filter: TasksScreen.Filter) -> Unit) {
@@ -53,6 +56,10 @@ class TasksView(
 
   override fun showChangeTaskStateFail(task: Task) {
     (binding.recyclerTasks.adapter as Adapter).submit(task)
+  }
+
+  override fun onNavigationIconClick(click: () -> Unit) {
+    binding.toolbar.setNavigationOnClickListener { click() }
   }
 
   override fun onMenuClick(click: (menu: TasksScreen.Menu) -> Unit) {
@@ -103,6 +110,7 @@ class TasksView(
 
   private class Adapter : ListAdapter<Task, Holder>(TaskDiff()) {
 
+    var loading: Boolean = false
     var itemClick: (Task) -> Unit = {}
     var itemCheck: (Boolean, Task) -> Unit = { _, _ -> }
 
@@ -110,9 +118,16 @@ class TasksView(
       val inflater = LayoutInflater.from(parent.context)
       val holder = Holder(inflater.inflate(R.layout.item_task, parent, false))
       holder.binding.apply {
-        root.setOnClickListener { itemClick(getItem(holder.adapterPosition)) }
+        root.setOnClickListener {
+          if (loading) return@setOnClickListener
+          itemClick(getItem(holder.adapterPosition))
+        }
         checkboxTaskState.setOnClickListener {
           val task = getItem(holder.adapterPosition)
+          if (loading) {
+            checkboxTaskState.isChecked = task.isCompleted
+            return@setOnClickListener
+          }
           val checked = checkboxTaskState.isChecked
           if (checked != task.isCompleted) {
             itemCheck(checked, task)

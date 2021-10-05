@@ -85,8 +85,6 @@ class EditTaskFragment : KeyedFragment(R.layout.view_edit_task), EditTaskScreen.
 
   @Parcelize
   class Key(val taskId: String? = null) : FragmentKey() {
-    override fun instantiateFragment(): Fragment {
-      return EditTaskFragment().apply { arguments = bundleOf("arg-task-id" to taskId) }
-    }
+    override fun instantiateFragment(): Fragment = EditTaskFragment()
   }
 }

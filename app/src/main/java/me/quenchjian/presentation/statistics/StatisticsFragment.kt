@@ -1,5 +1,6 @@
 package me.quenchjian.presentation.statistics
 
+import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
@@ -19,18 +20,18 @@ class StatisticsFragment : DrawerFragment<StatisticsScreen.View>(R.layout.view_s
   @Inject lateinit var calculateTasks: CalculateTasksUseCase
 
   override val view by createView { StatisticsView(ViewStaticticsBinding.bind(it)) }
-  override val drawer by lazy { view }
+  override val drawerView by lazy { view }
   override fun getCurrentMenu() = DrawerScreen.Menu.STATISTICS
 
   override fun onStart() {
     super.onStart()
     calculateTasks.subscribe(State.Observer(
-      onStart = { drawer.toggleCalculating(true) },
-      onComplete = { drawer.toggleCalculating(false) },
-      onSuccess = { drawer.showStatistics(it) },
+      onStart = { view.toggleCalculating(true) },
+      onComplete = { view.toggleCalculating(false) },
+      onSuccess = { view.showStatistics(it) },
       onError = this::handleError
     ))
-    drawer.onSwipeRefresh { calculate(true) }
+    view.onSwipeRefresh { calculate(true) }
     calculate(false)
   }
 
@@ -45,6 +46,6 @@ class StatisticsFragment : DrawerFragment<StatisticsScreen.View>(R.layout.view_s
 
   @Parcelize
   class Key : FragmentKey() {
-    override fun instantiateFragment() = StatisticsFragment()
+    override fun instantiateFragment(): Fragment = StatisticsFragment()
   }
 }

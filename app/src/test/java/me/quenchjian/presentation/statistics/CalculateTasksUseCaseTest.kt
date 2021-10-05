@@ -33,8 +33,17 @@ class CalculateTasksUseCaseTest {
   }
 
   @Test
-  fun testSuccess() {
+  fun testEnableReload() {
     useCase(true)
+    assertNotNull(statistics)
+    assertEquals(100, statistics!!.activePercent)
+    assertEquals(0, statistics!!.completedPercent)
+    assertNull(throwable)
+  }
+
+  @Test
+  fun testDisableReload() {
+    useCase(false)
     assertNotNull(statistics)
     assertEquals(100, statistics!!.activePercent)
     assertEquals(0, statistics!!.completedPercent)

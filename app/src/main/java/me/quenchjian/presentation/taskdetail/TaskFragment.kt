@@ -1,7 +1,6 @@
 package me.quenchjian.presentation.taskdetail
 
 import android.os.Bundle
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
@@ -100,8 +99,6 @@ class TaskFragment : KeyedFragment(R.layout.view_task), TaskScreen.Controller {
 
   @Parcelize
   class Key(val taskId: String) : FragmentKey() {
-    override fun instantiateFragment(): Fragment {
-      return TaskFragment().apply { arguments = bundleOf("arg-task-id" to taskId) }
-    }
+    override fun instantiateFragment(): Fragment = TaskFragment()
   }
 }

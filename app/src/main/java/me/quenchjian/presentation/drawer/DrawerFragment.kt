@@ -11,7 +11,7 @@ import java.util.*
 
 abstract class DrawerFragment<V : DrawerScreen>(@LayoutRes id: Int) : KeyedFragment(id) {
 
-  abstract val drawer: V
+  abstract val drawerView: V
   private val targets = EnumMap<DrawerScreen.Menu, FragmentKey>(DrawerScreen.Menu::class.java)
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,13 +22,15 @@ abstract class DrawerFragment<V : DrawerScreen>(@LayoutRes id: Int) : KeyedFragm
 
   override fun onStart() {
     super.onStart()
-    drawer.onActionClick { action ->
+    drawerView.onNavigationIconClick { drawerView.toggleDrawer(!drawerView.drawerOpened) }
+    drawerView.onActionClick { action ->
+      drawerView.toggleDrawer(false)
       if (action == getCurrentMenu()) {
         return@onActionClick
       }
       when (action) {
-        DrawerScreen.Menu.TASKS -> navigator.goBack()
-        DrawerScreen.Menu.STATISTICS -> navigator.goTo(targets[action]!!)
+        DrawerScreen.Menu.TASKS -> navigator.replaceTop(targets[action]!!)
+        DrawerScreen.Menu.STATISTICS -> navigator.replaceTop(targets[action]!!)
       }
     }
   }
