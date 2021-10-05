@@ -1,13 +1,19 @@
 package me.quenchjian
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import dagger.hilt.android.AndroidEntryPoint
+import me.quenchjian.navigation.FragmentKey
 import me.quenchjian.navigation.Navigator
 import me.quenchjian.presentation.tasks.TasksFragment
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
   private lateinit var navigator: Navigator
@@ -15,8 +21,9 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    val backstack = intent.getParcelableArrayListExtra<FragmentKey>("init-backstack")
     navigator = Navigator.init(this, createContainer(savedInstanceState))
-    navigator.setBackStack(listOf(TasksFragment.Key()))
+    navigator.setBackStack(backstack ?: listOf(TasksFragment.Key()))
   }
 
   override fun onBackPressed() {
@@ -27,11 +34,11 @@ class MainActivity : AppCompatActivity() {
 
   override fun onSaveInstanceState(outState: Bundle) {
     super.onSaveInstanceState(outState)
-    outState.saveId(containerId)
+    outState.containerId = containerId
   }
 
   private fun createContainer(state: Bundle?): Int {
-    containerId = state?.getId() ?: View.generateViewId()
+    containerId = state?.containerId ?: View.generateViewId()
     val lp = ViewGroup.LayoutParams(
       ViewGroup.LayoutParams.MATCH_PARENT,
       ViewGroup.LayoutParams.MATCH_PARENT
@@ -41,7 +48,13 @@ class MainActivity : AppCompatActivity() {
   }
 
   companion object {
-    private fun Bundle?.getId(): Int? = this?.getInt("container-id")
-    private fun Bundle.saveId(id: Int) = putInt("container-id", id)
+    private var Bundle.containerId: Int
+      get() = getInt("container-id")
+      set(value) = putInt("container-id", value)
+
+    fun intent(context: Context, vararg keys: FragmentKey): Intent {
+      return Intent.makeMainActivity(ComponentName(context, MainActivity::class.java))
+        .putParcelableArrayListExtra("init-backstack", arrayListOf(*keys))
+    }
   }
 }
