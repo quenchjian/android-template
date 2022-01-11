@@ -2,8 +2,8 @@ package me.quenchjian.presentation.statistics
 
 import me.quenchjian.concurrent.TestScheduler
 import me.quenchjian.data.FakeTaskRepository
-import me.quenchjian.presentation.common.model.State
-import me.quenchjian.presentation.statistics.usecase.CalculateTasksUseCase
+import me.quenchjian.presentation.statistics.model.CalculateTasksUseCase
+import me.quenchjian.presentation.statistics.model.Statistics
 import me.quenchjian.webservice.FakeApi
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -21,10 +21,15 @@ class CalculateTasksUseCaseTest {
 
   @BeforeTest
   fun setup() {
-    useCase.subscribe(State.Observer(
-      onSuccess = { statistics = it },
-      onError = { throwable = it }
-    ))
+    useCase.registerListener(object : CalculateTasksUseCase.Result {
+      override fun onSuccess(statistics: Statistics) {
+        this@CalculateTasksUseCaseTest.statistics = statistics
+      }
+
+      override fun onError(t: Throwable) {
+        throwable = t
+      }
+    })
   }
 
   @AfterTest

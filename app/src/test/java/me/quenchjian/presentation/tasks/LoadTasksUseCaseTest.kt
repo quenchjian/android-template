@@ -3,8 +3,8 @@ package me.quenchjian.presentation.tasks
 import me.quenchjian.concurrent.TestScheduler
 import me.quenchjian.data.FakeTaskRepository
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.model.State
-import me.quenchjian.presentation.tasks.usecase.LoadTasksUseCase
+import me.quenchjian.presentation.tasks.model.Filter
+import me.quenchjian.presentation.tasks.model.LoadTasksUseCase
 import me.quenchjian.webservice.FakeApi
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -21,10 +21,15 @@ class LoadTasksUseCaseTest {
 
   @BeforeTest
   fun setup() {
-    useCase.subscribe(State.Observer(
-      onSuccess = { tasks = it },
-      onError = { throwable = it }
-    ))
+    useCase.registerListener(object : LoadTasksUseCase.Result {
+      override fun onSuccess(tasks: List<Task>) {
+        this@LoadTasksUseCaseTest.tasks = tasks
+      }
+
+      override fun onError(t: Throwable) {
+        throwable = t
+      }
+    })
   }
 
   @AfterTest
@@ -34,7 +39,7 @@ class LoadTasksUseCaseTest {
 
   @Test
   fun testSuccess() {
-    useCase(true, TasksScreen.Filter.ALL)
+    useCase(true, Filter.ALL)
     assertNotNull(tasks)
     assertNull(throwable)
   }

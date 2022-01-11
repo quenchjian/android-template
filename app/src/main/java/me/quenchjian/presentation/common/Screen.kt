@@ -27,10 +27,10 @@ interface Screen {
   }
 
   interface Controller<V : View> {
-    val view: V
+    var view: V?
     fun handleError(t: Throwable) {
       Timber.e(t)
-      view.showError(t.message ?: "Unknown Error")
+      view?.showError(t.message ?: "Unknown Error")
     }
   }
 }

@@ -2,39 +2,33 @@ package me.quenchjian.presentation.tasks
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewTasksBinding
-import me.quenchjian.model.Task
 import me.quenchjian.navigation.FragmentKey
 import me.quenchjian.navigation.navigator
-import me.quenchjian.presentation.common.model.State
 import me.quenchjian.presentation.common.view.createView
 import me.quenchjian.presentation.drawer.DrawerFragment
-import me.quenchjian.presentation.drawer.DrawerScreen
+import me.quenchjian.presentation.drawer.Menu
 import me.quenchjian.presentation.edittask.EditTaskFragment
 import me.quenchjian.presentation.taskdetail.TaskFragment
-import me.quenchjian.presentation.taskdetail.usecase.ChangeTaskStateUseCase
-import me.quenchjian.presentation.tasks.usecase.ClearCompletedTasksUseCase
-import me.quenchjian.presentation.tasks.usecase.LoadTasksUseCase
-import javax.inject.Inject
+import me.quenchjian.presentation.tasks.controller.TasksController
+import me.quenchjian.presentation.tasks.model.Filter
+import me.quenchjian.presentation.tasks.view.ContextMenu
+import me.quenchjian.presentation.tasks.view.TasksView
 
 @AndroidEntryPoint
-class TasksFragment : DrawerFragment<TasksScreen.View>(R.layout.view_tasks),
-  TasksScreen.Controller {
+class TasksFragment : DrawerFragment<TasksView>(R.layout.view_tasks) {
 
-  @Inject lateinit var loadTasks: LoadTasksUseCase
-  @Inject lateinit var changeTaskState: ChangeTaskStateUseCase
-  @Inject lateinit var clearTasks: ClearCompletedTasksUseCase
+  private val view by createView { v -> TasksView(ViewTasksBinding.bind(v)) }
+  private val controller: TasksController by viewModels()
 
-  override val view by createView { v -> TasksView(ViewTasksBinding.bind(v)) }
-  override val drawerView by lazy { view }
-  override fun getCurrentMenu() = DrawerScreen.Menu.TASKS
+  override val drawerView get() = view
+  override fun getCurrentMenu() = Menu.TASKS
 
-  private var filter = TasksScreen.Filter.ALL
-  private var loading: Boolean = false
-  private lateinit var taskToChange: Task
+  private var filter = Filter.ALL
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -43,45 +37,31 @@ class TasksFragment : DrawerFragment<TasksScreen.View>(R.layout.view_tasks),
 
   override fun onStart() {
     super.onStart()
-    loadTasks.subscribe(State.Observer(
-      onStart = { toggleLoading(true) },
-      onComplete = { toggleLoading(false) },
-      onSuccess = { view.showTasks(it, filter) },
-      onError = this::handleError
-    ))
-    changeTaskState.subscribe(State.Observer(
-      onStart = { toggleLoading(true) },
-      onComplete = { toggleLoading(false) },
-      onError = {
-        handleError(it)
-        view.showChangeTaskStateFail(taskToChange)
-      }
-    ))
-    clearTasks.subscribe(State.Observer(
-      onStart = { toggleLoading(true) },
-      onComplete = { toggleLoading(false) },
-      onSuccess = { view.showTasks(it, TasksScreen.Filter.ALL) },
-      onError = this::handleError
-    ))
+    controller.view = view
     view.onMenuClick { menu ->
       when (menu) {
-        TasksScreen.Menu.FILTER -> view.showFilterMenu { filter -> loadTasks(false, filter) }
-        TasksScreen.Menu.CLEAR -> clearCompletedTask()
-        TasksScreen.Menu.REFRESH -> loadTasks(true, filter)
+        ContextMenu.FILTER -> view.showFilterMenu {
+          val filter = when (it.itemId) {
+            R.id.filter_active -> Filter.ACTIVE
+            R.id.filter_completed -> Filter.COMPLETED
+            else -> Filter.ALL
+          }
+          controller.loadTasks(false, filter)
+        }
+        ContextMenu.CLEAR -> controller.clearCompletedTask()
+        ContextMenu.REFRESH -> controller.loadTasks(true, filter)
       }
     }
-    view.onSwipeRefresh { loadTasks(true, filter) }
+    view.onSwipeRefresh { controller.loadTasks(true, filter) }
     view.onTaskClick { task -> navigator.goTo(TaskFragment.Key(task.id)) }
-    view.onTaskCompleteClick { checked, task -> toggleTaskState(task, checked) }
+    view.onTaskCompleteClick { checked, task -> controller.toggleTaskState(task, checked) }
     view.onAddClick { navigator.goTo(EditTaskFragment.Key()) }
-    loadTasks(true, filter)
+    controller.loadTasks(true, filter)
   }
 
   override fun onStop() {
     super.onStop()
-    loadTasks.dispose()
-    changeTaskState.dispose()
-    clearTasks.dispose()
+    controller.view = null
   }
 
   override fun onSaveInstanceState(outState: Bundle) {
@@ -89,31 +69,9 @@ class TasksFragment : DrawerFragment<TasksScreen.View>(R.layout.view_tasks),
     outState.filter = filter
   }
 
-  override fun loadTasks(reload: Boolean, filter: TasksScreen.Filter) {
-    if (loading) return
-    this.filter = filter
-    loadTasks.invoke(reload, filter)
-  }
-
-  override fun toggleTaskState(task: Task, completed: Boolean) {
-    if (loading) return
-    taskToChange = task
-    changeTaskState.invoke(task, completed)
-  }
-
-  override fun clearCompletedTask() {
-    if (loading) return
-    clearTasks()
-  }
-
-  private fun toggleLoading(loading: Boolean) {
-    this.loading = loading
-    view.toggleLoading(loading)
-  }
-
   companion object {
-    private var Bundle.filter: TasksScreen.Filter
-      get() = TasksScreen.Filter.valueOf(getString("key-tasks-filter", TasksScreen.Filter.ALL.name))
+    private var Bundle.filter: Filter
+      get() = Filter.valueOf(getString("key-tasks-filter", Filter.ALL.name))
       set(value) = putString("key-tasks-filter", value.name)
   }
 

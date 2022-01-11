@@ -2,8 +2,7 @@ package me.quenchjian.presentation.taskdetail
 
 import me.quenchjian.concurrent.TestScheduler
 import me.quenchjian.data.FakeTaskRepository
-import me.quenchjian.presentation.common.model.State
-import me.quenchjian.presentation.taskdetail.usecase.DeleteTaskUseCase
+import me.quenchjian.presentation.taskdetail.model.DeleteTaskUseCase
 import me.quenchjian.webservice.FakeApi
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -20,10 +19,15 @@ class DeleteTaskUseCaseTest {
 
   @BeforeTest
   fun setup() {
-    useCase.subscribe(State.Observer(
-      onSuccess = { taskDeleted = true },
-      onError = { throwable = it }
-    ))
+    useCase.registerListener(object : DeleteTaskUseCase.Result {
+      override fun onSuccess() {
+        taskDeleted = true
+      }
+
+      override fun onError(t: Throwable) {
+        throwable = t
+      }
+    })
   }
 
   @AfterTest

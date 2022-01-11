@@ -4,21 +4,24 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import me.quenchjian.R
+import me.quenchjian.presentation.common.Screen
 
-abstract class DrawerView(val navigation: NavigationView) : DrawerScreen {
+abstract class DrawerView(val navigation: NavigationView) : Screen.View {
 
   private val drawer: DrawerLayout = navigation.parent as DrawerLayout
-  override val drawerOpened: Boolean get() = drawer.isDrawerOpen(navigation)
+  val drawerOpened: Boolean get() = drawer.isDrawerOpen(navigation)
 
-  override fun toggleDrawer(open: Boolean) {
+  fun toggleDrawer(open: Boolean) {
     if (open) drawer.openDrawer(GravityCompat.START) else drawer.closeDrawer(GravityCompat.START)
   }
 
-  override fun onActionClick(click: (action: DrawerScreen.Menu) -> Unit) {
+  abstract fun onNavigationIconClick(click: () -> Unit)
+
+  fun onActionClick(click: (action: Menu) -> Unit) {
     navigation.setNavigationItemSelectedListener { item ->
       when (item.itemId) {
-        R.id.action_tasks -> click(DrawerScreen.Menu.TASKS)
-        R.id.action_statistics -> click(DrawerScreen.Menu.STATISTICS)
+        R.id.action_tasks -> click(Menu.TASKS)
+        R.id.action_statistics -> click(Menu.STATISTICS)
       }
       true
     }

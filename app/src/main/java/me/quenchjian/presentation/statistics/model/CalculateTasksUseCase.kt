@@ -1,12 +1,13 @@
-package me.quenchjian.presentation.statistics.usecase
+package me.quenchjian.presentation.statistics.model
 
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.quenchjian.concurrent.Schedulers
 import me.quenchjian.data.TaskRepository
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.model.Observable
-import me.quenchjian.presentation.statistics.Statistics
+import me.quenchjian.presentation.common.model.UseCase
 import me.quenchjian.webservice.RestApi
 import javax.inject.Inject
 
@@ -14,11 +15,27 @@ class CalculateTasksUseCase @Inject constructor(
   scheduler: Schedulers,
   private val api: RestApi,
   private val repo: TaskRepository,
-) : Observable<Statistics>(scheduler) {
+) : UseCase<CalculateTasksUseCase.Result>(scheduler) {
+
+  interface Result {
+    fun onLoading(active: Boolean) {}
+    fun onSuccess(statistics: Statistics)
+    fun onError(t: Throwable)
+  }
 
   @MainThread
   operator fun invoke(reload: Boolean) {
-    tryInvoke { execute(reload) }
+    launch {
+      try {
+        getListeners().forEach { it.onLoading(true) }
+        val result = withContext(scheduler.io) { execute(reload) }
+        getListeners().forEach { it.onSuccess(result) }
+      } catch (t: Throwable) {
+        getListeners().forEach { it.onError(t) }
+      } finally {
+        getListeners().forEach { it.onLoading(false) }
+      }
+    }
   }
 
   @WorkerThread

@@ -1,13 +1,14 @@
-package me.quenchjian.presentation.statistics
+package me.quenchjian.presentation.statistics.view
 
 import android.view.View
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewStaticticsBinding
 import me.quenchjian.presentation.drawer.DrawerView
+import me.quenchjian.presentation.statistics.model.Statistics
 
 class StatisticsView(
   private val binding: ViewStaticticsBinding,
-) : DrawerView(binding.navigation), StatisticsScreen.View {
+) : DrawerView(binding.navigation) {
 
   override val root: View = binding.root
 
@@ -17,11 +18,11 @@ class StatisticsView(
     binding.toolbar.title = string(R.string.statistics_title)
   }
 
-  override fun toggleCalculating(active: Boolean) {
+  fun toggleCalculating(active: Boolean) {
     binding.swiperefreshStatistics.isRefreshing = active
   }
 
-  override fun showStatistics(statistics: Statistics) {
+  fun showStatistics(statistics: Statistics) {
     binding.textStatisticsEmpty.visibility = if (statistics.isEmpty) View.VISIBLE else View.GONE
     binding.textStatisticsActive.visibility = if (statistics.isEmpty) View.GONE else View.VISIBLE
     binding.textStatisticsCompleted.visibility = if (statistics.isEmpty) View.GONE else View.VISIBLE
@@ -34,7 +35,7 @@ class StatisticsView(
     binding.toolbar.setNavigationOnClickListener { click() }
   }
 
-  override fun onSwipeRefresh(swipe: () -> Unit) {
+  fun onSwipeRefresh(swipe: () -> Unit) {
     binding.swiperefreshStatistics.setOnRefreshListener { swipe() }
   }
 }

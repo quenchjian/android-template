@@ -1,6 +1,7 @@
-package me.quenchjian.presentation.tasks
+package me.quenchjian.presentation.tasks.view
 
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
@@ -12,10 +13,9 @@ import me.quenchjian.databinding.ItemTaskBinding
 import me.quenchjian.databinding.ViewTasksBinding
 import me.quenchjian.model.Task
 import me.quenchjian.presentation.drawer.DrawerView
+import me.quenchjian.presentation.tasks.model.Filter
 
-class TasksView(
-  private val binding: ViewTasksBinding,
-) : DrawerView(binding.navigation), TasksScreen.View {
+class TasksView(private val binding: ViewTasksBinding) : DrawerView(binding.navigation) {
 
   override val root: View = binding.root
 
@@ -27,36 +27,32 @@ class TasksView(
     binding.recyclerTasks.adapter = Adapter()
   }
 
-  override fun toggleLoading(loading: Boolean) {
+  fun toggleLoading(loading: Boolean) {
     binding.swiperefreshTasks.isRefreshing = loading
     (binding.recyclerTasks.adapter as Adapter).loading = loading
   }
 
-  override fun showFilterMenu(click: (filter: TasksScreen.Filter) -> Unit) {
+  fun showFilterMenu(click: (item: MenuItem) -> Unit) {
     val view = binding.toolbar.findViewById<View>(R.id.action_filter) ?: return
     val popup = PopupMenu(context, view)
     popup.inflate(R.menu.tasks_filter)
     popup.setOnMenuItemClickListener {
-      when (it.itemId) {
-        R.id.filter_active -> click(TasksScreen.Filter.ACTIVE)
-        R.id.filter_completed -> click(TasksScreen.Filter.COMPLETED)
-        else -> click(TasksScreen.Filter.ALL)
-      }
+      click(it)
       true
     }
     popup.show()
   }
 
-  override fun showTasks(tasks: List<Task>, filter: TasksScreen.Filter) {
+  fun showTasks(tasks: List<Task>, filter: Filter) {
     binding.toolbar.title = when (filter) {
-      TasksScreen.Filter.ALL -> string(R.string.label_all)
-      TasksScreen.Filter.COMPLETED -> string(R.string.label_completed)
-      TasksScreen.Filter.ACTIVE -> string(R.string.label_active)
+      Filter.ALL -> string(R.string.label_all)
+      Filter.COMPLETED -> string(R.string.label_completed)
+      Filter.ACTIVE -> string(R.string.label_active)
     }
     (binding.recyclerTasks.adapter as Adapter).submitList(tasks)
   }
 
-  override fun showChangeTaskStateFail(task: Task) {
+  fun showChangeTaskStateFail(task: Task) {
     (binding.recyclerTasks.adapter as Adapter).submit(task)
   }
 
@@ -64,30 +60,30 @@ class TasksView(
     binding.toolbar.setNavigationOnClickListener { click() }
   }
 
-  override fun onMenuClick(click: (menu: TasksScreen.Menu) -> Unit) {
+  fun onMenuClick(click: (menu: ContextMenu) -> Unit) {
     binding.toolbar.setOnMenuItemClickListener { item ->
       when (item.itemId) {
-        R.id.action_filter -> click(TasksScreen.Menu.FILTER)
-        R.id.action_clear -> click(TasksScreen.Menu.CLEAR)
-        R.id.action_refresh -> click(TasksScreen.Menu.REFRESH)
+        R.id.action_filter -> click(ContextMenu.FILTER)
+        R.id.action_clear -> click(ContextMenu.CLEAR)
+        R.id.action_refresh -> click(ContextMenu.REFRESH)
       }
       true
     }
   }
 
-  override fun onSwipeRefresh(swipe: () -> Unit) {
+  fun onSwipeRefresh(swipe: () -> Unit) {
     binding.swiperefreshTasks.setOnRefreshListener { swipe() }
   }
 
-  override fun onTaskClick(click: (task: Task) -> Unit) {
+  fun onTaskClick(click: (task: Task) -> Unit) {
     (binding.recyclerTasks.adapter as Adapter).itemClick = click
   }
 
-  override fun onTaskCompleteClick(click: (checked: Boolean, task: Task) -> Unit) {
+  fun onTaskCompleteClick(click: (checked: Boolean, task: Task) -> Unit) {
     (binding.recyclerTasks.adapter as Adapter).itemCheck = click
   }
 
-  override fun onAddClick(click: () -> Unit) {
+  fun onAddClick(click: () -> Unit) {
     binding.fabAdd.setOnClickListener { click() }
   }
 

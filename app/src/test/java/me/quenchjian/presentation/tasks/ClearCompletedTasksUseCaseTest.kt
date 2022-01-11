@@ -3,8 +3,7 @@ package me.quenchjian.presentation.tasks
 import me.quenchjian.concurrent.TestScheduler
 import me.quenchjian.data.FakeTaskRepository
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.model.State
-import me.quenchjian.presentation.tasks.usecase.ClearCompletedTasksUseCase
+import me.quenchjian.presentation.tasks.model.ClearCompletedTasksUseCase
 import me.quenchjian.webservice.FakeApi
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -22,10 +21,15 @@ class ClearCompletedTasksUseCaseTest {
 
   @BeforeTest
   fun setup() {
-    useCase.subscribe(State.Observer(
-      onSuccess = { activeTasks = it },
-      onError = { throwable = it }
-    ))
+    useCase.registerListener(object : ClearCompletedTasksUseCase.Result {
+      override fun onSuccess(activeTasks: List<Task>) {
+        this@ClearCompletedTasksUseCaseTest.activeTasks = activeTasks
+      }
+
+      override fun onError(t: Throwable) {
+        throwable = t
+      }
+    })
   }
 
   @AfterTest

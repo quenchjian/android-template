@@ -9,15 +9,15 @@ import me.quenchjian.presentation.statistics.StatisticsFragment
 import me.quenchjian.presentation.tasks.TasksFragment
 import java.util.*
 
-abstract class DrawerFragment<V : DrawerScreen>(@LayoutRes id: Int) : KeyedFragment(id) {
+abstract class DrawerFragment<V : DrawerView>(@LayoutRes id: Int) : KeyedFragment(id) {
 
   abstract val drawerView: V
-  private val targets = EnumMap<DrawerScreen.Menu, FragmentKey>(DrawerScreen.Menu::class.java)
+  private val targets = EnumMap<Menu, FragmentKey>(Menu::class.java)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    targets[DrawerScreen.Menu.TASKS] = TasksFragment.Key()
-    targets[DrawerScreen.Menu.STATISTICS] = StatisticsFragment.Key()
+    targets[Menu.TASKS] = TasksFragment.Key()
+    targets[Menu.STATISTICS] = StatisticsFragment.Key()
   }
 
   override fun onStart() {
@@ -29,11 +29,11 @@ abstract class DrawerFragment<V : DrawerScreen>(@LayoutRes id: Int) : KeyedFragm
         return@onActionClick
       }
       when (action) {
-        DrawerScreen.Menu.TASKS -> navigator.replaceTop(targets[action]!!)
-        DrawerScreen.Menu.STATISTICS -> navigator.replaceTop(targets[action]!!)
+        Menu.TASKS -> navigator.replaceTop(targets[action]!!)
+        Menu.STATISTICS -> navigator.replaceTop(targets[action]!!)
       }
     }
   }
 
-  abstract fun getCurrentMenu(): DrawerScreen.Menu
+  abstract fun getCurrentMenu(): Menu
 }

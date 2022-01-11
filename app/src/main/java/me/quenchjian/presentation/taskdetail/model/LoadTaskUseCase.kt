@@ -1,11 +1,13 @@
-package me.quenchjian.presentation.taskdetail.usecase
+package me.quenchjian.presentation.taskdetail.model
 
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.quenchjian.concurrent.Schedulers
 import me.quenchjian.data.TaskRepository
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.model.Observable
+import me.quenchjian.presentation.common.model.UseCase
 import me.quenchjian.webservice.RestApi
 import javax.inject.Inject
 
@@ -13,13 +15,29 @@ class LoadTaskUseCase @Inject constructor(
   scheduler: Schedulers,
   private val api: RestApi,
   private val repo: TaskRepository,
-) : Observable<Task>(scheduler) {
+) : UseCase<LoadTaskUseCase.Result>(scheduler) {
+
+  interface Result {
+    fun onLoading(active: Boolean) {}
+    fun onSuccess(task: Task)
+    fun onError(t: Throwable)
+  }
 
   private var loaded: Task? = null
 
   @MainThread
   operator fun invoke(id: String, reload: Boolean) {
-    tryInvoke { execute(id, reload) }
+    launch {
+      try {
+        getListeners().forEach { it.onLoading(true) }
+        val result = withContext(scheduler.io) { execute(id, reload) }
+        getListeners().forEach { it.onSuccess(result) }
+      } catch (t: Throwable) {
+        getListeners().forEach { it.onError(t) }
+      } finally {
+        getListeners().forEach { it.onLoading(false) }
+      }
+    }
   }
 
   @WorkerThread

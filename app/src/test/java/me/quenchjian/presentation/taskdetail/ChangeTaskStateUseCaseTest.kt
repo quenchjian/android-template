@@ -3,9 +3,7 @@ package me.quenchjian.presentation.taskdetail
 import me.quenchjian.concurrent.TestScheduler
 import me.quenchjian.data.FakeTaskRepository
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.model.State
-import me.quenchjian.presentation.statistics.usecase.CalculateTasksUseCase
-import me.quenchjian.presentation.taskdetail.usecase.ChangeTaskStateUseCase
+import me.quenchjian.presentation.taskdetail.model.ChangeTaskStateUseCase
 import me.quenchjian.webservice.FakeApi
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -24,10 +22,15 @@ class ChangeTaskStateUseCaseTest {
 
   @BeforeTest
   fun setup() {
-    useCase.subscribe(State.Observer(
-      onSuccess = { updatedTask = it },
-      onError = { throwable = it }
-    ))
+    useCase.registerListener(object : ChangeTaskStateUseCase.Result {
+      override fun onSuccess(task: Task) {
+        updatedTask = task
+      }
+
+      override fun onError(t: Throwable) {
+        throwable = t
+      }
+    })
   }
 
   @AfterTest

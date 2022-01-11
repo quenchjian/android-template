@@ -3,19 +3,16 @@ package me.quenchjian.presentation.edittask
 import me.quenchjian.concurrent.TestScheduler
 import me.quenchjian.data.FakeTaskRepository
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.model.State
-import me.quenchjian.presentation.edittask.usecase.DescriptionEmptyError
-import me.quenchjian.presentation.edittask.usecase.EditTaskUseCase
-import me.quenchjian.presentation.edittask.usecase.TitleEmptyError
+import me.quenchjian.presentation.edittask.model.DescriptionEmptyError
+import me.quenchjian.presentation.edittask.model.EditTaskUseCase
+import me.quenchjian.presentation.edittask.model.TitleEmptyError
 import me.quenchjian.webservice.FakeApi
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class EditTaskUseCaseTest {
 
@@ -26,10 +23,15 @@ class EditTaskUseCaseTest {
 
   @BeforeTest
   fun setup() {
-    useCase.subscribe(State.Observer(
-      onSuccess = { updatedTask = it },
-      onError = { throwable = it }
-    ))
+    useCase.registerListener(object : EditTaskUseCase.Result {
+      override fun onSuccess(task: Task) {
+        updatedTask = task
+      }
+
+      override fun onError(t: Throwable) {
+        throwable = t
+      }
+    })
   }
 
   @AfterTest

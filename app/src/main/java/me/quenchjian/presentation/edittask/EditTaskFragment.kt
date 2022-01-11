@@ -1,41 +1,26 @@
 package me.quenchjian.presentation.edittask
 
 import android.os.Bundle
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewEditTaskBinding
-import me.quenchjian.model.Task
 import me.quenchjian.navigation.FragmentKey
 import me.quenchjian.navigation.KeyedFragment
 import me.quenchjian.navigation.navigator
-import me.quenchjian.presentation.common.model.State
 import me.quenchjian.presentation.common.view.createView
-import me.quenchjian.presentation.edittask.usecase.AddTaskUseCase
-import me.quenchjian.presentation.edittask.usecase.DescriptionEmptyError
-import me.quenchjian.presentation.edittask.usecase.EditTaskUseCase
-import me.quenchjian.presentation.edittask.usecase.TitleEmptyError
-import me.quenchjian.presentation.taskdetail.usecase.LoadTaskUseCase
-import javax.inject.Inject
+import me.quenchjian.presentation.edittask.controller.EditTaskController
+import me.quenchjian.presentation.edittask.view.EditTaskView
 
 @AndroidEntryPoint
-class EditTaskFragment : KeyedFragment(R.layout.view_edit_task), EditTaskScreen.Controller {
+class EditTaskFragment : KeyedFragment(R.layout.view_edit_task) {
 
-  @Inject lateinit var loadTask: LoadTaskUseCase
-  @Inject lateinit var addTask: AddTaskUseCase
-  @Inject lateinit var editTask: EditTaskUseCase
-
-  override val view by createView { EditTaskView(ViewEditTaskBinding.bind(it)) }
+  private val view: EditTaskView by createView { EditTaskView(ViewEditTaskBinding.bind(it)) }
+  private val controller: EditTaskController by viewModels()
 
   private var taskId: String? = null
-  private lateinit var task: Task
-
-  private val addEditObserver = State.Observer<Task>(
-    onSuccess = { navigator.goBack() },
-    onError = this::handleError
-  )
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -44,43 +29,17 @@ class EditTaskFragment : KeyedFragment(R.layout.view_edit_task), EditTaskScreen.
 
   override fun onStart() {
     super.onStart()
-    loadTask.subscribe(State.Observer(
-      onSuccess = { view.showTask(it.also { task = it }) },
-      onError = this::handleError
-    ))
-    addTask.subscribe(addEditObserver)
-    editTask.subscribe(addEditObserver)
-    view.onSaveClick { saveTask(it, taskId == null) }
+    controller.view = view
+    controller.onTaskSaved { navigator.goBack() }
+    view.onSaveClick { controller.saveTask(it, taskId == null) }
     if (taskId != null) {
-      loadTask(taskId!!)
+      controller.loadTask(taskId!!)
     }
   }
 
   override fun onStop() {
     super.onStop()
-    loadTask.dispose()
-    addTask.dispose()
-    editTask.dispose()
-  }
-
-  override fun loadTask(id: String) {
-    loadTask(id, true)
-  }
-
-  override fun saveTask(input: EditTaskScreen.Input, add: Boolean) {
-    if (add) {
-      addTask(input.title, input.description)
-    } else {
-      editTask(task.copy(title = input.title, description = input.description))
-    }
-  }
-
-  override fun handleError(t: Throwable) {
-    when (t) {
-      is TitleEmptyError -> view.showError(getString(R.string.empty_task_title))
-      is DescriptionEmptyError -> view.showError(getString(R.string.empty_task_description))
-      else -> super.handleError(t)
-    }
+    controller.view = null
   }
 
   @Parcelize

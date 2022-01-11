@@ -1,4 +1,4 @@
-package me.quenchjian.presentation.statistics
+package me.quenchjian.presentation.statistics.model
 
 import kotlin.math.roundToInt
 
