@@ -55,7 +55,7 @@ class EditTaskScreenTest {
     onView(withId(R.id.edit_text_desc)).perform(clearText())
     onView(withId(R.id.fab_save)).perform(click())
 
-    onView(withId(expected)).check(matches(isDisplayed()))
+    onView(withText(expected)).check(matches(isDisplayed()))
   }
 
   @Test
