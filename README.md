@@ -4,9 +4,11 @@ This project is modified base on [Android Architecture Sample](https://github.co
 * Remove data-binding and use view binding only
 * Business logic implemented with simple UseCase
 * Remove Jetpack ViewModel
-* Simple MVC pattern implementation that treat Fragment as Controller
+* Simple MVC pattern implementation that the definition of Controller contains two parts, android related part and business logic part
 * Custom navigator to navigate between screens
 * Dependency injection with [Dagger-Hilt](https://github.com/google/dagger/)
+
+![MVC structure](MVC.jpg)
 
 TODO
 ---
