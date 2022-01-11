@@ -7,16 +7,17 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import java.util.*
+import java.util.Deque
+import java.util.LinkedList
 import javax.inject.Inject
 import javax.inject.Singleton
 
 class Navigator(
-  private val host: FragmentActivity,
+  private var host: FragmentActivity,
   private val containerId: Int,
 ) {
 
-  private val manager = host.supportFragmentManager
+  private val manager get() = host.supportFragmentManager
   private val stack: Deque<FragmentKey> = LinkedList()
 
   fun getBackStack(): List<FragmentKey> = LinkedList(stack)
@@ -91,8 +92,8 @@ class Navigator(
   }
 
   companion object {
-    fun init(host: FragmentActivity, containerId: Int): Navigator {
-      return Provider.get(host).init(host, containerId)
+    fun init(host: FragmentActivity, containerId: Int, backstack: List<FragmentKey>): Navigator {
+      return Provider.get(host).init(host, containerId, backstack)
     }
   }
 
@@ -100,8 +101,14 @@ class Navigator(
   class Provider @Inject constructor() {
     private val navigators = mutableMapOf<String, Navigator>()
 
-    fun init(host: FragmentActivity, containerId: Int): Navigator {
-      return navigators.getOrPut(host::class.java.name) { Navigator(host, containerId) }
+    fun init(host: FragmentActivity, containerId: Int, backstack: List<FragmentKey>): Navigator {
+      val navigator = navigators.getOrPut(host::class.java.name) { Navigator(host, containerId) }
+      if (navigator.host != host) {
+        navigator.host = host
+      } else {
+        navigator.setBackStack(backstack)
+      }
+      return navigator
     }
 
     fun get(host: FragmentActivity): Navigator {

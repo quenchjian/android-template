@@ -22,8 +22,8 @@ class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val backstack = intent.getParcelableArrayListExtra<FragmentKey>("init-backstack")
-    navigator = Navigator.init(this, createContainer(savedInstanceState))
-    navigator.setBackStack(backstack ?: listOf(TasksFragment.Key()))
+      ?: listOf(TasksFragment.Key())
+    navigator = Navigator.init(this, createContainer(savedInstanceState), backstack)
   }
 
   override fun onBackPressed() {
