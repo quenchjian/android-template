@@ -3,12 +3,12 @@ package me.quenchjian.presentation.edittask.view
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewEditTaskBinding
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.Screen
+import me.quenchjian.presentation.common.view.MvcView
 import me.quenchjian.presentation.common.model.InputError
 import me.quenchjian.presentation.edittask.model.DescriptionEmptyError
 import me.quenchjian.presentation.edittask.model.TitleEmptyError
 
-class EditTaskView(private val binding: ViewEditTaskBinding) : Screen.View {
+class EditTaskView(private val binding: ViewEditTaskBinding) : MvcView {
 
   override val root = binding.root
 

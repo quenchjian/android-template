@@ -6,11 +6,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import me.quenchjian.presentation.common.Screen
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-class ActivityViewDelegate<V : Screen.View>(
+class ActivityViewDelegate<V : MvcView>(
   private val activity: AppCompatActivity,
   private val factory: (LayoutInflater) -> V
 ) : ReadOnlyProperty<AppCompatActivity, V> {

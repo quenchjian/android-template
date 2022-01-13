@@ -2,7 +2,7 @@ package me.quenchjian.presentation.statistics.controller
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import me.quenchjian.presentation.common.Screen
+import me.quenchjian.presentation.common.controller.Controller
 import me.quenchjian.presentation.statistics.model.CalculateTasksUseCase
 import me.quenchjian.presentation.statistics.model.Statistics
 import me.quenchjian.presentation.statistics.view.StatisticsView
@@ -11,7 +11,7 @@ import javax.inject.Inject
 @HiltViewModel
 class StatisticsController @Inject constructor(
   private val calculateTasks: CalculateTasksUseCase,
-) : ViewModel(), Screen.Controller<StatisticsView> {
+) : ViewModel(), Controller<StatisticsView> {
 
   override var view: StatisticsView? = null
 

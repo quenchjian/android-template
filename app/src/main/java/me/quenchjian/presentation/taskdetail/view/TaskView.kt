@@ -5,9 +5,9 @@ import android.widget.CheckBox
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewTaskBinding
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.Screen
+import me.quenchjian.presentation.common.view.MvcView
 
-class TaskView(private val binding: ViewTaskBinding) : Screen.View {
+class TaskView(private val binding: ViewTaskBinding) : MvcView {
 
   override val root = binding.root
 

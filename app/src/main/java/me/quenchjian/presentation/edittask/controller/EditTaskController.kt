@@ -3,7 +3,7 @@ package me.quenchjian.presentation.edittask.controller
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.Screen
+import me.quenchjian.presentation.common.controller.Controller
 import me.quenchjian.presentation.common.model.InputError
 import me.quenchjian.presentation.edittask.view.TaskInput
 import me.quenchjian.presentation.edittask.model.AddTaskUseCase
@@ -17,7 +17,7 @@ class EditTaskController @Inject constructor(
   private val loadTask: LoadTaskUseCase,
   private val addTask: AddTaskUseCase,
   private val editTask: EditTaskUseCase,
-) : ViewModel(), Screen.Controller<EditTaskView> {
+) : ViewModel(), Controller<EditTaskView> {
 
   override var view: EditTaskView? = null
   private lateinit var task: Task

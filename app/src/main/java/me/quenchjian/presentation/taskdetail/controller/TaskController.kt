@@ -3,7 +3,7 @@ package me.quenchjian.presentation.taskdetail.controller
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.Screen
+import me.quenchjian.presentation.common.controller.Controller
 import me.quenchjian.presentation.taskdetail.model.ChangeTaskStateUseCase
 import me.quenchjian.presentation.taskdetail.model.DeleteTaskUseCase
 import me.quenchjian.presentation.taskdetail.model.LoadTaskUseCase
@@ -15,7 +15,7 @@ class TaskController @Inject constructor(
   private val loadTask: LoadTaskUseCase,
   private val deleteTask: DeleteTaskUseCase,
   private val changeTaskState: ChangeTaskStateUseCase,
-) : ViewModel(), Screen.Controller<TaskView> {
+) : ViewModel(), Controller<TaskView> {
 
   override var view: TaskView? = null
   private var task: Task? = null

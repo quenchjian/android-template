@@ -7,11 +7,10 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
-import me.quenchjian.presentation.common.Screen
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-class FragmentViewDelegate<V : Screen.View>(
+class FragmentViewDelegate<V : MvcView>(
   private val fragment: Fragment,
   private val factory: (View) -> V
 ) : ReadOnlyProperty<Fragment, V> {
