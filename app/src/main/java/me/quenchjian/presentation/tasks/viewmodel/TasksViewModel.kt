@@ -1,94 +1,96 @@
-package me.quenchjian.presentation.tasks.controller
+package me.quenchjian.presentation.tasks.viewmodel
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.controller.Controller
+import me.quenchjian.presentation.common.viewmodel.BaseViewModel
 import me.quenchjian.presentation.taskdetail.model.ChangeTaskStateUseCase
-import me.quenchjian.presentation.tasks.model.Filter
 import me.quenchjian.presentation.tasks.model.ClearCompletedTasksUseCase
+import me.quenchjian.presentation.tasks.model.Filter
 import me.quenchjian.presentation.tasks.model.LoadTasksUseCase
-import me.quenchjian.presentation.tasks.view.TasksView
 import javax.inject.Inject
 
 @HiltViewModel
-class TasksController @Inject constructor(
+class TasksViewModel @Inject constructor(
   private val loadTasks: LoadTasksUseCase,
   private val changeTaskState: ChangeTaskStateUseCase,
   private val clearTasks: ClearCompletedTasksUseCase,
-) : ViewModel(), Controller<TasksView> {
+) : BaseViewModel() {
 
-  override var view: TasksView? = null
-
-  private var filter = Filter.ALL
-  private var loading: Boolean = false
-  private lateinit var taskToChange: Task
+  val filter: LiveData<Filter?> = MutableLiveData()
+  val loading: LiveData<Boolean> = MutableLiveData(false)
+  val tasks: LiveData<List<Task>> = MutableLiveData()
+  val error: LiveData<String> = MutableLiveData()
+  val completeState: LiveData<CompleteState> = MutableLiveData()
 
   init {
     loadTasks.registerListener(object : LoadTasksUseCase.Result {
       override fun onLoading(active: Boolean) {
-        toggleLoading(active)
+        loading.mutable().value = active
       }
 
       override fun onSuccess(tasks: List<Task>) {
-        view?.showTasks(tasks, filter)
+        this@TasksViewModel.tasks.mutable().value = tasks
       }
 
       override fun onError(t: Throwable) {
-        handleError(t)
+        error.mutable().value = t.message
       }
     })
     changeTaskState.registerListener(object : ChangeTaskStateUseCase.Result {
       override fun onLoading(active: Boolean) {
-        toggleLoading(active)
+        loading.mutable().value = active
       }
 
-      override fun onSuccess(task: Task) {}
+      override fun onSuccess(task: Task) {
+        completeState.mutable().value = CompleteState.Success
+      }
+
       override fun onError(t: Throwable) {
-        handleError(t)
-        view?.showChangeTaskStateFail(taskToChange)
+        error.mutable().value = t.message
+        completeState.mutable().value = CompleteState.Failure
       }
     })
     clearTasks.registerListener(object : ClearCompletedTasksUseCase.Result {
       override fun onLoading(active: Boolean) {
-        toggleLoading(active)
+        loading.mutable().value = active
       }
 
       override fun onSuccess(activeTasks: List<Task>) {
-        view?.showTasks(activeTasks, Filter.ALL)
+        tasks.mutable().value = activeTasks
       }
 
       override fun onError(t: Throwable) {
-        handleError(t)
+        error.mutable().value = t.message
       }
     })
   }
 
-  fun loadTasks(reload: Boolean, filter: Filter) {
-    if (loading) return
-    this.filter = filter
+  fun loadTasks(reload: Boolean, filter: Filter = Filter.ALL) {
+    if (loading.value == true) return
+    this.filter.mutable().value = filter
     loadTasks.invoke(reload, filter)
   }
 
   fun toggleTaskState(task: Task, completed: Boolean) {
-    if (loading) return
-    taskToChange = task
+    if (loading.value == true) return
     changeTaskState.invoke(task, completed)
   }
 
   fun clearCompletedTask() {
-    if (loading) return
+    if (loading.value == true) return
     clearTasks()
-  }
-
-  private fun toggleLoading(loading: Boolean) {
-    this.loading = loading
-    view?.toggleLoading(loading)
   }
 
   override fun onCleared() {
     loadTasks.dispose()
     changeTaskState.dispose()
     clearTasks.dispose()
+  }
+
+  sealed interface CompleteState {
+    object Success : CompleteState
+    object Failure : CompleteState
   }
 }

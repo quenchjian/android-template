@@ -1,32 +1,34 @@
-package me.quenchjian.presentation.statistics.controller
+package me.quenchjian.presentation.statistics.viewmodel
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import me.quenchjian.presentation.common.controller.Controller
+import me.quenchjian.presentation.common.viewmodel.BaseViewModel
 import me.quenchjian.presentation.statistics.model.CalculateTasksUseCase
 import me.quenchjian.presentation.statistics.model.Statistics
-import me.quenchjian.presentation.statistics.view.StatisticsView
 import javax.inject.Inject
 
 @HiltViewModel
-class StatisticsController @Inject constructor(
+class StatisticsViewModel @Inject constructor(
   private val calculateTasks: CalculateTasksUseCase,
-) : ViewModel(), Controller<StatisticsView> {
+) : BaseViewModel() {
 
-  override var view: StatisticsView? = null
+  val loading: LiveData<Boolean> = MutableLiveData()
+  val statistics: LiveData<Statistics> = MutableLiveData()
+  val error: LiveData<String> = MutableLiveData()
 
   init {
     calculateTasks.registerListener(object : CalculateTasksUseCase.Result {
       override fun onLoading(active: Boolean) {
-        view?.toggleCalculating(active)
+        loading.mutable().value = active
       }
 
       override fun onSuccess(statistics: Statistics) {
-        view?.showStatistics(statistics)
+        this@StatisticsViewModel.statistics.mutable().value = statistics
       }
 
       override fun onError(t: Throwable) {
-        handleError(t)
+        error.mutable().value = t.message
       }
     })
   }

@@ -8,18 +8,17 @@ import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewTaskBinding
 import me.quenchjian.navigation.FragmentKey
-import me.quenchjian.navigation.KeyedFragment
-import me.quenchjian.navigation.navigator
+import me.quenchjian.presentation.common.BaseFragment
 import me.quenchjian.presentation.common.view.createView
 import me.quenchjian.presentation.edittask.EditTaskFragment
-import me.quenchjian.presentation.taskdetail.controller.TaskController
 import me.quenchjian.presentation.taskdetail.view.TaskView
+import me.quenchjian.presentation.taskdetail.viewmodel.TaskViewModel
 
 @AndroidEntryPoint
-class TaskFragment : KeyedFragment(R.layout.view_task) {
+class TaskFragment : BaseFragment<TaskViewModel, TaskView>(R.layout.view_task) {
 
-  private val view by createView { TaskView(ViewTaskBinding.bind(it)) }
-  private val controller: TaskController by viewModels()
+  override val v by createView { TaskView(ViewTaskBinding.bind(it)) }
+  override val vm: TaskViewModel by viewModels()
 
   private lateinit var taskId: String
 
@@ -28,20 +27,18 @@ class TaskFragment : KeyedFragment(R.layout.view_task) {
     taskId = getKey<Key>().taskId
   }
 
-  override fun onStart() {
-    super.onStart()
-    controller.view = view
-    view.onBackClick { navigator.goBack() }
-    view.onDeleteClick { controller.deleteTask(taskId) }
-    view.onCheckBoxClick { controller.toggleTaskState(it) }
-    view.onEditClick { navigator.goTo(EditTaskFragment.Key(taskId)) }
-    view.onSwipeRefresh { controller.loadTask(taskId, true) }
-    controller.loadTask(taskId, false)
+  override fun bindViewProperty() {
+    super.bindViewProperty()
+    vm.loadTask(taskId, false)
   }
 
-  override fun onStop() {
-    super.onStop()
-    controller.view = null
+  override fun bindViewCommand() {
+    super.bindViewCommand()
+    v.onBackClick { navigator.goBack() }
+    v.onDeleteClick { vm.deleteTask(taskId) }
+    v.onCheckBoxClick { vm.toggleTaskState(it) }
+    v.onEditClick { navigator.goTo(EditTaskFragment.Key(taskId)) }
+    v.onSwipeRefresh { vm.loadTask(taskId, true) }
   }
 
   @Parcelize

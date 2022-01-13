@@ -12,6 +12,11 @@ import java.util.LinkedList
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * This is a simplified navigator to demonstrate screen navigation is part of business logic that
+ * related to android platform and should only be used in Activity or Fragment only, not in ViewModel.
+ * Please don't use this class in production app, use androidx.navigation, SimpleStack or other navigation library instead.
+ */
 class Navigator(
   private var host: FragmentActivity,
   private val containerId: Int,

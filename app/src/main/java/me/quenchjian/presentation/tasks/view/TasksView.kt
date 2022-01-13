@@ -14,10 +14,15 @@ import me.quenchjian.databinding.ViewTasksBinding
 import me.quenchjian.model.Task
 import me.quenchjian.presentation.drawer.DrawerView
 import me.quenchjian.presentation.tasks.model.Filter
+import me.quenchjian.presentation.tasks.viewmodel.TasksViewModel
 
-class TasksView(private val binding: ViewTasksBinding) : DrawerView(binding.navigation) {
+class TasksView(private val binding: ViewTasksBinding) : DrawerView<TasksViewModel>(binding.navigation) {
 
   override val root: View = binding.root
+
+  private var filterMenuClick: (MenuItem) -> Unit = {}
+  private lateinit var taskToCheck: Task
+  private val adapter: Adapter get() = binding.recyclerTasks.adapter as Adapter
 
   init {
     binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
@@ -27,33 +32,44 @@ class TasksView(private val binding: ViewTasksBinding) : DrawerView(binding.navi
     binding.recyclerTasks.adapter = Adapter()
   }
 
-  fun toggleLoading(loading: Boolean) {
-    binding.swiperefreshTasks.isRefreshing = loading
-    (binding.recyclerTasks.adapter as Adapter).loading = loading
-  }
-
-  fun showFilterMenu(click: (item: MenuItem) -> Unit) {
-    val view = binding.toolbar.findViewById<View>(R.id.action_filter) ?: return
-    val popup = PopupMenu(context, view)
-    popup.inflate(R.menu.tasks_filter)
-    popup.setOnMenuItemClickListener {
-      click(it)
-      true
+  override fun initViewModel(vm: TasksViewModel) {
+    vm.filter.observe(lifecycleOwner) { showFilterTitle(it ?: Filter.ALL) }
+    vm.loading.observe(lifecycleOwner) { toggleLoading(it) }
+    vm.tasks.observe(lifecycleOwner) { showTasks(it) }
+    vm.error.observe(lifecycleOwner) { showError(it) }
+    vm.completeState.observe(lifecycleOwner) {
+      if (it == TasksViewModel.CompleteState.Failure) {
+        adapter.submit(taskToCheck)
+      }
     }
-    popup.show()
   }
 
-  fun showTasks(tasks: List<Task>, filter: Filter) {
+  private fun toggleLoading(loading: Boolean) {
+    binding.swiperefreshTasks.isRefreshing = loading
+    adapter.loading = loading
+  }
+
+  private fun showFilterTitle(filter: Filter) {
     binding.toolbar.title = when (filter) {
       Filter.ALL -> string(R.string.label_all)
       Filter.COMPLETED -> string(R.string.label_completed)
       Filter.ACTIVE -> string(R.string.label_active)
     }
-    (binding.recyclerTasks.adapter as Adapter).submitList(tasks)
   }
 
-  fun showChangeTaskStateFail(task: Task) {
-    (binding.recyclerTasks.adapter as Adapter).submit(task)
+  private fun showFilterMenu() {
+    val view = binding.toolbar.findViewById<View>(R.id.action_filter) ?: return
+    val popup = PopupMenu(context, view)
+    popup.inflate(R.menu.tasks_filter)
+    popup.setOnMenuItemClickListener {
+      filterMenuClick(it)
+      true
+    }
+    popup.show()
+  }
+
+  private fun showTasks(tasks: List<Task>) {
+    adapter.submitList(tasks)
   }
 
   override fun onNavigationIconClick(click: () -> Unit) {
@@ -63,7 +79,7 @@ class TasksView(private val binding: ViewTasksBinding) : DrawerView(binding.navi
   fun onMenuClick(click: (menu: ContextMenu) -> Unit) {
     binding.toolbar.setOnMenuItemClickListener { item ->
       when (item.itemId) {
-        R.id.action_filter -> click(ContextMenu.FILTER)
+        R.id.action_filter -> showFilterMenu()
         R.id.action_clear -> click(ContextMenu.CLEAR)
         R.id.action_refresh -> click(ContextMenu.REFRESH)
       }
@@ -71,16 +87,23 @@ class TasksView(private val binding: ViewTasksBinding) : DrawerView(binding.navi
     }
   }
 
+  fun onFilterMenuClick(click: (MenuItem) -> Unit) {
+    filterMenuClick = click
+  }
+
   fun onSwipeRefresh(swipe: () -> Unit) {
     binding.swiperefreshTasks.setOnRefreshListener { swipe() }
   }
 
   fun onTaskClick(click: (task: Task) -> Unit) {
-    (binding.recyclerTasks.adapter as Adapter).itemClick = click
+    adapter.itemClick = click
   }
 
   fun onTaskCompleteClick(click: (checked: Boolean, task: Task) -> Unit) {
-    (binding.recyclerTasks.adapter as Adapter).itemCheck = click
+    adapter.itemCheck = { checked, task ->
+      taskToCheck = task
+      click(checked, task)
+    }
   }
 
   fun onAddClick(click: () -> Unit) {

@@ -10,7 +10,10 @@ import androidx.lifecycle.Observer
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-class FragmentViewDelegate<V : MvcView>(
+/**
+ * View factory that belongs to fragment in MVVM pattern
+ */
+class FragmentViewDelegate<V : MvvmView<*>>(
   private val fragment: Fragment,
   private val factory: (View) -> V
 ) : ReadOnlyProperty<Fragment, V> {

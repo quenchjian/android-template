@@ -5,11 +5,14 @@ import android.widget.CheckBox
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewTaskBinding
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.view.MvcView
+import me.quenchjian.presentation.common.view.MvvmView
+import me.quenchjian.presentation.taskdetail.viewmodel.TaskViewModel
 
-class TaskView(private val binding: ViewTaskBinding) : MvcView {
+class TaskView(private val binding: ViewTaskBinding) : MvvmView<TaskViewModel> {
 
   override val root = binding.root
+
+  private lateinit var task: Task
 
   init {
     binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
@@ -17,24 +20,36 @@ class TaskView(private val binding: ViewTaskBinding) : MvcView {
     binding.toolbar.inflateMenu(R.menu.task_action)
   }
 
-  fun toggleLoading(loading: Boolean) {
+  override fun initViewModel(vm: TaskViewModel) {
+    vm.loading.observe(lifecycleOwner) { toggleLoading(it) }
+    vm.task.observe(lifecycleOwner) { showTask(it) }
+    vm.deleteState.observe(lifecycleOwner) {
+      if (it == TaskViewModel.DeleteTaskState.Success) {
+        showTaskDeleted()
+      }
+    }
+    vm.completeState.observe(lifecycleOwner) {
+      if (it == TaskViewModel.CompleteTaskState.Failure) {
+        binding.checkboxTaskState.isChecked = task.isCompleted
+      }
+    }
+  }
+
+  private fun toggleLoading(loading: Boolean) {
     binding.swiperefreshTask.isRefreshing = loading
   }
 
-  fun showTask(task: Task) {
+  private fun showTask(task: Task) {
+    this.task = task
     binding.checkboxTaskState.isChecked = task.isCompleted
     binding.textTaskTitle.text = task.title
     binding.textTaskDescription.text = task.description
   }
 
-  fun showTaskDeleted() {
+  private fun showTaskDeleted() {
     binding.checkboxTaskState.visibility = View.GONE
     binding.textTaskTitle.text = string(R.string.no_data)
     binding.textTaskDescription.visibility = View.GONE
-  }
-
-  fun showChangeTaskStateFail(task: Task) {
-    binding.checkboxTaskState.isChecked = task.isCompleted
   }
 
   fun onBackClick(click: () -> Unit) {

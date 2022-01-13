@@ -1,27 +1,30 @@
-package me.quenchjian.presentation.edittask.controller
+package me.quenchjian.presentation.edittask.viewmodel
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import me.quenchjian.model.Task
-import me.quenchjian.presentation.common.controller.Controller
 import me.quenchjian.presentation.common.model.InputError
-import me.quenchjian.presentation.edittask.view.TaskInput
+import me.quenchjian.presentation.common.viewmodel.BaseViewModel
 import me.quenchjian.presentation.edittask.model.AddTaskUseCase
 import me.quenchjian.presentation.edittask.model.EditTaskUseCase
-import me.quenchjian.presentation.edittask.view.EditTaskView
+import me.quenchjian.presentation.edittask.view.TaskInput
 import me.quenchjian.presentation.taskdetail.model.LoadTaskUseCase
 import javax.inject.Inject
 
 @HiltViewModel
-class EditTaskController @Inject constructor(
+class EditTaskViewModel @Inject constructor(
   private val loadTask: LoadTaskUseCase,
   private val addTask: AddTaskUseCase,
   private val editTask: EditTaskUseCase,
-) : ViewModel(), Controller<EditTaskView> {
+) : BaseViewModel() {
 
-  override var view: EditTaskView? = null
-  private lateinit var task: Task
+  private var taskCache: Task? = null
   private val saveTaskResult = SaveTaskResult()
+
+  val task: LiveData<Task> = MutableLiveData()
+  val inputError: LiveData<InputError> = MutableLiveData()
+  val error: LiveData<String> = MutableLiveData()
 
   init {
     loadTask.registerListener(LoadTaskResult())
@@ -33,8 +36,9 @@ class EditTaskController @Inject constructor(
     loadTask.invoke(id, true)
   }
 
-  fun saveTask(input: TaskInput, add: Boolean) {
-    if (add) {
+  fun saveTask(input: TaskInput) {
+    val task = taskCache
+    if (task == null) {
       addTask(input.title, input.description)
     } else {
       editTask(task.copy(title = input.title, description = input.description))
@@ -45,10 +49,10 @@ class EditTaskController @Inject constructor(
     saveTaskResult.taskSaved = runner
   }
 
-  override fun handleError(t: Throwable) {
+  private fun handleError(t: Throwable) {
     when (t) {
-      is InputError -> view?.showInputError(t)
-      else -> super.handleError(t)
+      is InputError -> inputError.mutable().value = t
+      else -> error.mutable().value = t.message
     }
   }
 
@@ -58,10 +62,10 @@ class EditTaskController @Inject constructor(
     editTask.dispose()
   }
 
-  private inner class LoadTaskResult: LoadTaskUseCase.Result {
+  private inner class LoadTaskResult : LoadTaskUseCase.Result {
     override fun onSuccess(task: Task) {
-      this@EditTaskController.task = task
-      view?.showTask(task)
+      taskCache = task
+      this@EditTaskViewModel.task.mutable().value = task
     }
 
     override fun onError(t: Throwable) {
@@ -69,7 +73,7 @@ class EditTaskController @Inject constructor(
     }
   }
 
-  private inner class SaveTaskResult: AddTaskUseCase.Result, EditTaskUseCase.Result {
+  private inner class SaveTaskResult : AddTaskUseCase.Result, EditTaskUseCase.Result {
     var taskSaved: () -> Unit = {}
 
     override fun onLoading(active: Boolean) {}

@@ -9,11 +9,16 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.NonNull
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewTreeLifecycleOwner
 import com.google.android.material.snackbar.Snackbar
 
-interface MvcView {
+interface MvvmView<VM: ViewModel> {
   val root: View
   val context: Context get() = root.context
+  val lifecycleOwner: LifecycleOwner get() = ViewTreeLifecycleOwner.get(root)!!
+  fun initViewModel(vm: VM)
   fun attach(@NonNull saved: Bundle) {}
   fun detach(@NonNull state: Bundle) {}
   fun showError(msg: String) {

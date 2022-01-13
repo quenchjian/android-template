@@ -1,15 +1,16 @@
 package me.quenchjian.presentation.drawer
 
 import android.os.Bundle
+import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
+import androidx.lifecycle.ViewModel
 import me.quenchjian.navigation.FragmentKey
-import me.quenchjian.navigation.KeyedFragment
-import me.quenchjian.navigation.navigator
+import me.quenchjian.presentation.common.BaseFragment
 import me.quenchjian.presentation.statistics.StatisticsFragment
 import me.quenchjian.presentation.tasks.TasksFragment
 import java.util.*
 
-abstract class DrawerFragment<V : DrawerView>(@LayoutRes id: Int) : KeyedFragment(id) {
+abstract class DrawerFragment<VM : ViewModel, V : DrawerView<VM>>(@LayoutRes id: Int) : BaseFragment<VM, V>(id) {
 
   abstract val drawerView: V
   private val targets = EnumMap<Menu, FragmentKey>(Menu::class.java)
@@ -20,8 +21,9 @@ abstract class DrawerFragment<V : DrawerView>(@LayoutRes id: Int) : KeyedFragmen
     targets[Menu.STATISTICS] = StatisticsFragment.Key()
   }
 
-  override fun onStart() {
-    super.onStart()
+  @CallSuper
+  override fun bindViewCommand() {
+    super.bindViewCommand()
     drawerView.onNavigationIconClick { drawerView.toggleDrawer(!drawerView.drawerOpened) }
     drawerView.onActionClick { action ->
       drawerView.toggleDrawer(false)

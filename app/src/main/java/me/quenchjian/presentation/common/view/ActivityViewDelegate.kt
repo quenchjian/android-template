@@ -9,7 +9,7 @@ import androidx.lifecycle.LifecycleOwner
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
-class ActivityViewDelegate<V : MvcView>(
+class ActivityViewDelegate<V : MvvmView<*>>(
   private val activity: AppCompatActivity,
   private val factory: (LayoutInflater) -> V
 ) : ReadOnlyProperty<AppCompatActivity, V> {

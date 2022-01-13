@@ -8,17 +8,16 @@ import kotlinx.parcelize.Parcelize
 import me.quenchjian.R
 import me.quenchjian.databinding.ViewEditTaskBinding
 import me.quenchjian.navigation.FragmentKey
-import me.quenchjian.navigation.KeyedFragment
-import me.quenchjian.navigation.navigator
+import me.quenchjian.presentation.common.BaseFragment
 import me.quenchjian.presentation.common.view.createView
-import me.quenchjian.presentation.edittask.controller.EditTaskController
 import me.quenchjian.presentation.edittask.view.EditTaskView
+import me.quenchjian.presentation.edittask.viewmodel.EditTaskViewModel
 
 @AndroidEntryPoint
-class EditTaskFragment : KeyedFragment(R.layout.view_edit_task) {
+class EditTaskFragment : BaseFragment<EditTaskViewModel, EditTaskView>(R.layout.view_edit_task) {
 
-  private val view: EditTaskView by createView { EditTaskView(ViewEditTaskBinding.bind(it)) }
-  private val controller: EditTaskController by viewModels()
+  override val v: EditTaskView by createView { EditTaskView(ViewEditTaskBinding.bind(it)) }
+  override val vm: EditTaskViewModel by viewModels()
 
   private var taskId: String? = null
 
@@ -27,19 +26,16 @@ class EditTaskFragment : KeyedFragment(R.layout.view_edit_task) {
     taskId = getKey<Key>().taskId
   }
 
-  override fun onStart() {
-    super.onStart()
-    controller.view = view
-    controller.onTaskSaved { navigator.goBack() }
-    view.onSaveClick { controller.saveTask(it, taskId == null) }
+  override fun bindViewProperty() {
+    super.bindViewProperty()
     if (taskId != null) {
-      controller.loadTask(taskId!!)
+      vm.loadTask(taskId!!)
     }
   }
 
-  override fun onStop() {
-    super.onStop()
-    controller.view = null
+  override fun bindViewCommand() {
+    vm.onTaskSaved { navigator.goBack() }
+    v.onSaveClick { vm.saveTask(it) }
   }
 
   @Parcelize

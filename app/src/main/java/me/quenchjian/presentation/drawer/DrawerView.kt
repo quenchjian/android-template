@@ -2,11 +2,12 @@ package me.quenchjian.presentation.drawer
 
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.ViewModel
 import com.google.android.material.navigation.NavigationView
 import me.quenchjian.R
-import me.quenchjian.presentation.common.view.MvcView
+import me.quenchjian.presentation.common.view.MvvmView
 
-abstract class DrawerView(val navigation: NavigationView) : MvcView {
+abstract class DrawerView<VM: ViewModel>(val navigation: NavigationView) : MvvmView<VM> {
 
   private val drawer: DrawerLayout = navigation.parent as DrawerLayout
   val drawerOpened: Boolean get() = drawer.isDrawerOpen(navigation)
