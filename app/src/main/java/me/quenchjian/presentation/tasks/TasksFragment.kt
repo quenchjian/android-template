@@ -28,6 +28,11 @@ class TasksFragment : DrawerFragment<TasksViewModel, TasksView>(R.layout.view_ta
 
   override fun bindViewProperty() {
     super.bindViewProperty()
+    vm.filter.observe(viewLifecycleOwner) { v.filterTitle = it ?: Filter.ALL }
+    vm.loading.observe(viewLifecycleOwner) { v.loading = it }
+    vm.tasks.observe(viewLifecycleOwner) { v.tasks = it }
+    vm.error.observe(viewLifecycleOwner) { v.error = it }
+    vm.completeState.observe(viewLifecycleOwner) { v.completed = it == TasksViewModel.CompleteState.Success }
     if (vm.filter.value == null) {
       vm.loadTasks(true, Filter.ALL)
     }

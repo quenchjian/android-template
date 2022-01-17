@@ -23,7 +23,9 @@ class StatisticsFragment : DrawerFragment<StatisticsViewModel, StatisticsView>(R
   override fun getCurrentMenu() = Menu.STATISTICS
 
   override fun bindViewProperty() {
-    super.bindViewProperty()
+    vm.loading.observe(viewLifecycleOwner) { v.calculating = it }
+    vm.statistics.observe(viewLifecycleOwner) { v.statistics = it }
+    vm.error.observe(viewLifecycleOwner) { v.error = it }
     vm.calculate(false)
   }
 

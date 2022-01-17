@@ -29,6 +29,14 @@ class TaskFragment : BaseFragment<TaskViewModel, TaskView>(R.layout.view_task) {
 
   override fun bindViewProperty() {
     super.bindViewProperty()
+    vm.loading.observe(viewLifecycleOwner) { v.loading = it }
+    vm.task.observe(viewLifecycleOwner) { v.task = it }
+    vm.deleteState.observe(viewLifecycleOwner) {
+      if (it == TaskViewModel.DeleteTaskState.Success) {
+        v.task = null
+      }
+    }
+    vm.completeState.observe(viewLifecycleOwner) { v.completed = it == TaskViewModel.CompleteTaskState.Success }
     vm.loadTask(taskId, false)
   }
 

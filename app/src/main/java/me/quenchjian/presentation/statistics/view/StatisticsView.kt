@@ -17,24 +17,22 @@ class StatisticsView(private val binding: ViewStaticticsBinding) : DrawerView<St
     binding.toolbar.title = string(R.string.statistics_title)
   }
 
-  override fun initViewModel(vm: StatisticsViewModel) {
-    vm.loading.observe(lifecycleOwner) { toggleCalculating(it) }
-    vm.statistics.observe(lifecycleOwner) { showStatistics(it) }
-    vm.error.observe(lifecycleOwner) { showError(it) }
-  }
+  var calculating: Boolean = false
+    set(value) {
+      field = value
+      binding.swiperefreshStatistics.isRefreshing = value
+    }
+  var statistics: Statistics? = null
+    set(value) {
+      field = value
+      value ?: return
+      binding.textStatisticsEmpty.visibility = if (value.isEmpty) View.VISIBLE else View.GONE
+      binding.textStatisticsActive.visibility = if (value.isEmpty) View.GONE else View.VISIBLE
+      binding.textStatisticsCompleted.visibility = if (value.isEmpty) View.GONE else View.VISIBLE
 
-  private fun toggleCalculating(active: Boolean) {
-    binding.swiperefreshStatistics.isRefreshing = active
-  }
-
-  private fun showStatistics(statistics: Statistics) {
-    binding.textStatisticsEmpty.visibility = if (statistics.isEmpty) View.VISIBLE else View.GONE
-    binding.textStatisticsActive.visibility = if (statistics.isEmpty) View.GONE else View.VISIBLE
-    binding.textStatisticsCompleted.visibility = if (statistics.isEmpty) View.GONE else View.VISIBLE
-
-    binding.textStatisticsActive.text = string(R.string.statistics_active_tasks, statistics.active)
-    binding.textStatisticsCompleted.text = string(R.string.statistics_completed_tasks, statistics.completed)
-  }
+      binding.textStatisticsActive.text = string(R.string.statistics_active_tasks, value.active)
+      binding.textStatisticsCompleted.text = string(R.string.statistics_completed_tasks, value.completed)
+    }
 
   override fun onNavigationIconClick(click: () -> Unit) {
     binding.toolbar.setNavigationOnClickListener { click() }

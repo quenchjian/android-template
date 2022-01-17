@@ -7,7 +7,7 @@ import com.google.android.material.navigation.NavigationView
 import me.quenchjian.R
 import me.quenchjian.presentation.common.view.MvvmView
 
-abstract class DrawerView<VM: ViewModel>(val navigation: NavigationView) : MvvmView<VM> {
+abstract class DrawerView<VM: ViewModel>(val navigation: NavigationView) : MvvmView<VM>() {
 
   private val drawer: DrawerLayout = navigation.parent as DrawerLayout
   val drawerOpened: Boolean get() = drawer.isDrawerOpen(navigation)

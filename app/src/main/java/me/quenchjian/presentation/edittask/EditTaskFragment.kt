@@ -27,7 +27,9 @@ class EditTaskFragment : BaseFragment<EditTaskViewModel, EditTaskView>(R.layout.
   }
 
   override fun bindViewProperty() {
-    super.bindViewProperty()
+    vm.task.observe(viewLifecycleOwner) { v.task = it }
+    vm.inputError.observe(viewLifecycleOwner) { v.inputError = it }
+    vm.error.observe(viewLifecycleOwner) { v.error = it }
     if (taskId != null) {
       vm.loadTask(taskId!!)
     }

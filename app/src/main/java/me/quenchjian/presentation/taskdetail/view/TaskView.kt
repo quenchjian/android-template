@@ -8,11 +8,9 @@ import me.quenchjian.model.Task
 import me.quenchjian.presentation.common.view.MvvmView
 import me.quenchjian.presentation.taskdetail.viewmodel.TaskViewModel
 
-class TaskView(private val binding: ViewTaskBinding) : MvvmView<TaskViewModel> {
+class TaskView(private val binding: ViewTaskBinding) : MvvmView<TaskViewModel>() {
 
   override val root = binding.root
-
-  private lateinit var task: Task
 
   init {
     binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
@@ -20,37 +18,35 @@ class TaskView(private val binding: ViewTaskBinding) : MvvmView<TaskViewModel> {
     binding.toolbar.inflateMenu(R.menu.task_action)
   }
 
-  override fun initViewModel(vm: TaskViewModel) {
-    vm.loading.observe(lifecycleOwner) { toggleLoading(it) }
-    vm.task.observe(lifecycleOwner) { showTask(it) }
-    vm.deleteState.observe(lifecycleOwner) {
-      if (it == TaskViewModel.DeleteTaskState.Success) {
-        showTaskDeleted()
-      }
+  var loading: Boolean = false
+    set(value) {
+      field = value
+      binding.swiperefreshTask.isRefreshing = value
     }
-    vm.completeState.observe(lifecycleOwner) {
-      if (it == TaskViewModel.CompleteTaskState.Failure) {
-        binding.checkboxTaskState.isChecked = task.isCompleted
-      }
+  var task: Task? = null
+    set(value) {
+      field = value
+      completed = value?.isCompleted
+      title = value?.title
+      description = value?.description
     }
-  }
-
-  private fun toggleLoading(loading: Boolean) {
-    binding.swiperefreshTask.isRefreshing = loading
-  }
-
-  private fun showTask(task: Task) {
-    this.task = task
-    binding.checkboxTaskState.isChecked = task.isCompleted
-    binding.textTaskTitle.text = task.title
-    binding.textTaskDescription.text = task.description
-  }
-
-  private fun showTaskDeleted() {
-    binding.checkboxTaskState.visibility = View.GONE
-    binding.textTaskTitle.text = string(R.string.no_data)
-    binding.textTaskDescription.visibility = View.GONE
-  }
+  var completed: Boolean? = false
+    set(value) {
+      field = value
+      binding.checkboxTaskState.visibility = if (value == null) View.GONE else View.VISIBLE
+      binding.checkboxTaskState.isChecked = value ?: false
+    }
+  private var title: String? = ""
+    set(value) {
+      field = value
+      binding.textTaskTitle.text = if (value.isNullOrEmpty()) string(R.string.no_data) else value
+    }
+  private var description: String? = ""
+    set(value) {
+      field = value
+      binding.textTaskDescription.visibility = if (value == null) View.GONE else View.VISIBLE
+      binding.textTaskDescription.text = value
+    }
 
   fun onBackClick(click: () -> Unit) {
     binding.toolbar.setNavigationOnClickListener { click() }

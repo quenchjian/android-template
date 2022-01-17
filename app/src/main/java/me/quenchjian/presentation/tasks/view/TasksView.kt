@@ -32,30 +32,33 @@ class TasksView(private val binding: ViewTasksBinding) : DrawerView<TasksViewMod
     binding.recyclerTasks.adapter = Adapter()
   }
 
-  override fun initViewModel(vm: TasksViewModel) {
-    vm.filter.observe(lifecycleOwner) { showFilterTitle(it ?: Filter.ALL) }
-    vm.loading.observe(lifecycleOwner) { toggleLoading(it) }
-    vm.tasks.observe(lifecycleOwner) { showTasks(it) }
-    vm.error.observe(lifecycleOwner) { showError(it) }
-    vm.completeState.observe(lifecycleOwner) {
-      if (it == TasksViewModel.CompleteState.Failure) {
+  var filterTitle: Filter = Filter.ALL
+    set(value) {
+      field = value
+      binding.toolbar.title = when (value) {
+        Filter.ALL -> string(R.string.label_all)
+        Filter.COMPLETED -> string(R.string.label_completed)
+        Filter.ACTIVE -> string(R.string.label_active)
+      }
+    }
+  var loading: Boolean = false
+    set(value) {
+      field = value
+      binding.swiperefreshTasks.isRefreshing = value
+      adapter.loading = value
+    }
+  var tasks: List<Task> = emptyList()
+    set(value) {
+      field = value
+      adapter.submitList(value)
+    }
+  var completed: Boolean = false
+    set(value) {
+      field = value
+      if (!value) {
         adapter.submit(taskToCheck)
       }
     }
-  }
-
-  private fun toggleLoading(loading: Boolean) {
-    binding.swiperefreshTasks.isRefreshing = loading
-    adapter.loading = loading
-  }
-
-  private fun showFilterTitle(filter: Filter) {
-    binding.toolbar.title = when (filter) {
-      Filter.ALL -> string(R.string.label_all)
-      Filter.COMPLETED -> string(R.string.label_completed)
-      Filter.ACTIVE -> string(R.string.label_active)
-    }
-  }
 
   private fun showFilterMenu() {
     val view = binding.toolbar.findViewById<View>(R.id.action_filter) ?: return
@@ -66,10 +69,6 @@ class TasksView(private val binding: ViewTasksBinding) : DrawerView<TasksViewMod
       true
     }
     popup.show()
-  }
-
-  private fun showTasks(tasks: List<Task>) {
-    adapter.submitList(tasks)
   }
 
   override fun onNavigationIconClick(click: () -> Unit) {
