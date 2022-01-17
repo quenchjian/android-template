@@ -14,7 +14,6 @@ import com.google.android.material.snackbar.Snackbar
 
 abstract class MvvmView<VM : ViewModel> {
   abstract val root: View
-  val context: Context get() = root.context
   var error: String = ""
     set(value) {
       field = value
@@ -23,9 +22,24 @@ abstract class MvvmView<VM : ViewModel> {
       }
     }
 
+  protected val context: Context get() = root.context
+
   fun attach(@NonNull saved: Bundle) {}
   fun detach(@NonNull state: Bundle) {}
-  fun string(@StringRes id: Int, vararg obj: Any): String = context.getString(id, *obj)
-  fun drawable(@DrawableRes id: Int): Drawable = ContextCompat.getDrawable(context, id)!!
-  fun color(@ColorRes id: Int): Int = ContextCompat.getColor(context, id)
+
+  protected fun string(@StringRes id: Int, vararg obj: Any): String = context.getString(id, *obj)
+  protected fun drawable(@DrawableRes id: Int): Drawable = ContextCompat.getDrawable(context, id)!!
+  protected fun color(@ColorRes id: Int): Int = ContextCompat.getColor(context, id)
+
+  protected fun View.hideIf(condition: () -> Boolean) {
+    if (condition()) {
+      visibility = View.GONE
+    }
+  }
+
+  protected fun View.showIf(condition: () -> Boolean) {
+    if (condition()) {
+      visibility = View.VISIBLE
+    }
+  }
 }

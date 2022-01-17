@@ -33,7 +33,7 @@ class TaskView(private val binding: ViewTaskBinding) : MvvmView<TaskViewModel>()
   var completed: Boolean? = false
     set(value) {
       field = value
-      binding.checkboxTaskState.visibility = if (value == null) View.GONE else View.VISIBLE
+      binding.checkboxTaskState.hideIf { value == null }
       binding.checkboxTaskState.isChecked = value ?: false
     }
   private var title: String? = ""
@@ -44,7 +44,7 @@ class TaskView(private val binding: ViewTaskBinding) : MvvmView<TaskViewModel>()
   private var description: String? = ""
     set(value) {
       field = value
-      binding.textTaskDescription.visibility = if (value == null) View.GONE else View.VISIBLE
+      binding.textTaskDescription.hideIf { value == null }
       binding.textTaskDescription.text = value
     }
 
