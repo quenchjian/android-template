@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import dagger.hilt.android.AndroidEntryPoint
 import me.quenchjian.navigation.FragmentKey
@@ -21,19 +22,20 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val backstack = intent.getParcelableArrayListExtra<FragmentKey>("init-backstack")
-      ?: listOf(TasksFragment.Key())
+    val backstack = savedInstanceState?.backstack ?: intent.backstack ?: listOf(TasksFragment.Key())
     navigator = Navigator.init(this, createContainer(savedInstanceState), backstack)
-  }
-
-  override fun onBackPressed() {
-    if (!navigator.goBack()) {
-      super.onBackPressed()
-    }
+    onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
+      override fun handleOnBackPressed() {
+        if (!navigator.goBack()) {
+          isEnabled = false
+        }
+      }
+    })
   }
 
   override fun onSaveInstanceState(outState: Bundle) {
     super.onSaveInstanceState(outState)
+    outState.backstack = ArrayList(navigator.getBackStack())
     outState.containerId = containerId
   }
 
@@ -47,7 +49,14 @@ class MainActivity : AppCompatActivity() {
     return containerId
   }
 
+  @Suppress("DEPRECATION")
   companion object {
+    private const val KEY_BACKSTACK = "init-backstack"
+    private val Intent.backstack: ArrayList<FragmentKey>?
+      get() = getParcelableArrayListExtra(KEY_BACKSTACK)
+    private var Bundle.backstack: ArrayList<FragmentKey>?
+      get() = getParcelableArrayList(KEY_BACKSTACK)
+      set(value) = putParcelableArrayList(KEY_BACKSTACK, value)
     private var Bundle.containerId: Int
       get() = getInt("container-id")
       set(value) = putInt("container-id", value)
